@@ -128,9 +128,13 @@ Open Source（オープンソース）に開く この世界
 ## 🤝 約束ごと / The only rule
 
 頂点を作らないこと。
+
 誰かを底辺に縛らないこと。
+
 源を独り占めしないこと。
+
 そして――情報を、ひとりで使わないこと。
+
 
 > **友朋共生** — 友であり、companion であるものとして、共に在る。
 > To live together, as friends and companions.
