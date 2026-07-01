@@ -1,0 +1,48 @@
+name: Wall of Hands — Witness signing
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+  contents: write
+
+jobs:
+  witness:
+    if: contains(github.event.comment.body, '/witness')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run witness bot
+        id: bot
+        run: python wall-of-hands/scripts/witness_bot.py "${{ github.event_path }}"
+
+      - name: Commit ledger updates
+        run: |
+          git config user.name "wall-of-hands-bot"
+          git config user.email "actions@github.com"
+          git add wall-of-hands/data
+          git diff --cached --quiet || git commit -m "chore(wall-of-hands): witness signature on issue #${{ github.event.issue.number }}"
+          git push
+
+      - name: Post result comment
+        if: steps.bot.outputs.message != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue comment ${{ github.event.issue.number }} \
+            --repo ${{ github.repository }} \
+            --body "${{ steps.bot.outputs.message }}"
+
+      - name: Close issue if finalized
+        if: steps.bot.outputs.finalized == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue close ${{ github.event.issue.number }} --repo ${{ github.repository }}

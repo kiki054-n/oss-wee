@@ -1,0 +1,56 @@
+name: Grip（測定イベント）
+description: Reachが具体的な出来事にぶつかった瞬間を記録し、Witnessの署名を募る。
+title: "Grip: "
+labels: ["grip", "wave-pending"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        このIssueは Wall of Hands の「測定イベント（Grip）」を記録するためのものです。
+        作成した時点では `provisional`（仮収縮）として扱われます。
+        当事者(from/to)以外のHandが本Issueに `/witness hand:xxxx` とコメントすると、Witnessとして署名されます。
+        Witnessが1名以上確定すると、Bond/Breachとして最終確定し、`wall-of-hands/data/wall.jsonl` に追記され、このIssueは自動でクローズされます。
+  - type: input
+    id: reach_id
+    attributes:
+      label: Reach ID
+      placeholder: "reach:0001"
+    validations:
+      required: true
+  - type: input
+    id: from_hand
+    attributes:
+      label: From Hand ID
+      placeholder: "hand:kiki054-n"
+    validations:
+      required: true
+  - type: input
+    id: to_hand
+    attributes:
+      label: To Hand ID
+      placeholder: "hand:someone"
+    validations:
+      required: true
+  - type: input
+    id: occurred_at
+    attributes:
+      label: Occurred At (ISO 8601)
+      placeholder: "2026-07-10T00:00:00Z"
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Outcome
+      options:
+        - bond
+        - breach
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: 判断根拠となる説明やURL（任意）
+    validations:
+      required: false

@@ -1,0 +1,4 @@
+{
+  "_comment": "GitHubログイン名 -> hand_id の対応表。Witness署名時、コメント投稿者の実際のGitHubアカウントがここに登録されたhand_idと一致することを確認するために使う。新しいHandが参加する際はPRでここに1行追加する。",
+  "kiki054-n": "hand:kiki054-n"
+}
