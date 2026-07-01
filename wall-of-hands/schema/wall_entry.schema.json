@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/kiki054-n/oss-wee/wall-of-hands/schema/wall_entry.schema.json",
+  "title": "WallEntry",
+  "description": "Grip確定後に自動生成される、追記専用・不変の台帳エントリ。",
+  "type": "object",
+  "required": ["wall_id", "grip_id", "recorded_at", "immutable"],
+  "additionalProperties": false,
+  "properties": {
+    "wall_id": {
+      "type": "string",
+      "pattern": "^wall:[a-zA-Z0-9_-]+$"
+    },
+    "grip_id": {
+      "type": "string",
+      "pattern": "^grip:[a-zA-Z0-9_-]+$"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "immutable": {
+      "type": "boolean",
+      "const": true,
+      "description": "常にtrue。一度書かれたWallEntryは削除・上書きされない。"
+    }
+  }
+}

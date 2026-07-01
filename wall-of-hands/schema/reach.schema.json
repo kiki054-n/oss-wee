@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/kiki054-n/oss-wee/wall-of-hands/schema/reach.schema.json",
+  "title": "Reach",
+  "description": "あるHandが別のHandに対して信用枠を宣言する行為。Gripが起きるまでは『波』の状態であり、信用スコアの計算には使わない。",
+  "type": "object",
+  "required": ["reach_id", "from", "to", "declared_value", "declared_at", "state"],
+  "additionalProperties": false,
+  "properties": {
+    "reach_id": {
+      "type": "string",
+      "pattern": "^reach:[a-zA-Z0-9_-]+$"
+    },
+    "from": {
+      "type": "string",
+      "pattern": "^hand:[a-zA-Z0-9_-]+$"
+    },
+    "to": {
+      "type": "string",
+      "pattern": "^hand:[a-zA-Z0-9_-]+$"
+    },
+    "declared_value": {
+      "type": "string",
+      "minLength": 1,
+      "description": "自然言語での宣言内容。厳密な数値化は要求しない。"
+    },
+    "declared_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "state": {
+      "type": "string",
+      "enum": ["wave", "collapsed"],
+      "description": "Gripが発生するまでは常に 'wave'。"
+    }
+  }
+}

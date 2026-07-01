@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/kiki054-n/oss-wee/wall-of-hands/schema/grip.schema.json",
+  "title": "Grip",
+  "description": "Reachが具体的な出来事にぶつかった瞬間。Bond（信頼の粒）かBreach（裏切りの粒）のどちらかに収縮する『測定』イベント。",
+  "type": "object",
+  "required": ["grip_id", "reach_id", "occurred_at", "outcome", "witnesses", "provisional"],
+  "additionalProperties": false,
+  "properties": {
+    "grip_id": {
+      "type": "string",
+      "pattern": "^grip:[a-zA-Z0-9_-]+$"
+    },
+    "reach_id": {
+      "type": "string",
+      "pattern": "^reach:[a-zA-Z0-9_-]+$"
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["bond", "breach"]
+    },
+    "evidence": {
+      "type": "string",
+      "description": "任意。判断根拠となる説明やURL。"
+    },
+    "witnesses": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^hand:[a-zA-Z0-9_-]+$"
+      },
+      "description": "当事者(from/to)以外の立会人。空配列の場合は provisional=true が必須。"
+    },
+    "provisional": {
+      "type": "boolean",
+      "description": "true の場合、witnessesが不在または不十分であることを示す。時効(既定30日)経過まではBond/Breach集計に算入しない。"
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "witnesses": { "type": "array", "maxItems": 0 } } },
+      "then": { "properties": { "provisional": { "const": true } } }
+    }
+  ]
+}
