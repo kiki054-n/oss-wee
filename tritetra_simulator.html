@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>トリテトラ理論 - 統治構造3Dシミュレーター</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <!-- OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        /* スライダースタイリング */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #334155;
+            height: 6px;
+            border-radius: 9999px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        .glow-cyan {
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+        }
+        .glow-emerald {
+            text-shadow: 0 0 10px rgba(52, 211, 153, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans overflow-x-hidden selection:bg-sky-500 selection:text-white">
+
+    <!-- ヘッダー -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded bg-gradient-to-br from-sky-400 to-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">
+                T
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-wider bg-gradient-to-r from-sky-400 via-emerald-400 to-indigo-400 bg-clip-text text-transparent">
+                    TRI-TETRA THEORY
+                </h1>
+                <p class="text-xs text-slate-400">トリテトラ理論：国家統治構造の多次元動態モデル</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <span id="system-status-badge" class="px-3 py-1 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 animate-pulse">
+                状態: 安定・調和
+            </span>
+            <button id="btn-reset-camera" class="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded transition-colors duration-150">
+                カメラリセット
+            </button>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="flex-1 flex flex-col lg:flex-row h-[calc(100vh-73px)] overflow-hidden">
+        
+        <!-- 左側：コントロール＆ダッシュボード (スクロール可能) -->
+        <section class="w-full lg:w-[480px] border-r border-slate-800 bg-slate-900/50 backdrop-blur-md overflow-y-auto p-6 flex flex-col gap-6 scrollbar-thin scrollbar-thumb-slate-800">
+            
+            <!-- パネルA: クイックプリセット -->
+            <div>
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                    <span>⚡</span> 状況シミュレーション・プリセット
+                </h2>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="applyPreset('ideal')" class="p-2.5 text-xs font-medium bg-emerald-950/40 hover:bg-emerald-900/40 border border-emerald-500/30 hover:border-emerald-400 text-emerald-400 rounded text-left transition-all">
+                        🟢 理想状態 (調和)
+                        <div class="text-[10px] text-slate-400 mt-1">三権と国民主権の完全均衡</div>
+                    </button>
+                    <button onclick="applyPreset('collapsed')" class="p-2.5 text-xs font-medium bg-rose-950/40 hover:bg-rose-900/40 border border-rose-500/30 hover:border-rose-400 text-rose-400 rounded text-left transition-all">
+                        🔴 現代の日本 (1次元化)
+                        <div class="text-[10px] text-slate-400 mt-1">司法沈没・立法行政の一体化</div>
+                    </button>
+                    <button onclick="applyPreset('runaway')" class="p-2.5 text-xs font-medium bg-amber-950/40 hover:bg-amber-900/40 border border-amber-500/30 hover:border-amber-400 text-amber-400 rounded text-left transition-all">
+                        🟡 強権行政と外圧
+                        <div class="text-[10px] text-slate-400 mt-1">外圧による行政の肥大・暴走</div>
+                    </button>
+                    <button onclick="applyPreset('butterfly')" class="p-2.5 text-xs font-medium bg-sky-950/40 hover:bg-sky-900/40 border border-sky-500/30 hover:border-sky-400 text-sky-400 rounded text-left transition-all">
+                        🔵 バタフライ効果 (覚醒)
+                        <div class="text-[10px] text-slate-400 mt-1">国民の情報要求が促す自律復元</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- パネルB: インジケーター (リアルタイム値) -->
+            <div class="bg-slate-950/80 rounded-lg p-4 border border-slate-800 flex flex-col gap-3">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                    <span>📊</span> 統治安定性リアルタイム指標
+                </h2>
+                
+                <!-- 安定度メーター -->
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-slate-400">システム安定度:</span>
+                        <span id="stability-text" class="font-bold text-emerald-400">100% (極めて安定)</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="stability-bar" class="h-full bg-gradient-to-r from-emerald-500 to-sky-500 transition-all duration-300" style="width: 100%;"></div>
+                    </div>
+                </div>
+
+                <!-- 不平不満メーター -->
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-slate-400">国民の不平不満 (重心の偏心):</span>
+                        <span id="dissatisfaction-text" class="font-bold text-slate-400">0.00 (皆無)</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div id="dissatisfaction-bar" class="h-full bg-rose-500 transition-all duration-300" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- メディア透明度 -->
+                <div class="grid grid-cols-2 gap-4 mt-1 border-t border-slate-800 pt-2 text-xs">
+                    <div>
+                        <span class="text-slate-400 block mb-0.5">メディア状態:</span>
+                        <span id="media-status-text" class="font-semibold text-emerald-400">📡 独立 (オオカミ)</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-0.5">統治構造の次元:</span>
+                        <span id="dimension-status-text" class="font-semibold text-sky-400">3次元 (正四面体)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- パネルC: スライダーコントロール -->
+            <div class="flex flex-col gap-5">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                    <span>🎛️</span> 変数調整パネル
+                    <span class="text-[10px] text-slate-500 lowercase">※スライダーで各要素を操作</span>
+                </h2>
+
+                <!-- スライダー1: 国民の正確な情報の要求 (バタフライ効果) -->
+                <div class="bg-sky-950/20 hover:bg-sky-950/30 p-3.5 rounded-lg border border-sky-500/10 transition-colors">
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="slide-accuracy" class="text-xs font-semibold text-sky-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+                            正確な情報の要求 (バタフライ効果)
+                        </label>
+                        <span id="val-accuracy" class="text-xs font-mono font-bold text-sky-400">100%</span>
+                    </div>
+                    <input type="range" id="slide-accuracy" min="0" max="100" value="100" class="w-full mt-2">
+                    <p class="text-[10px] text-slate-400 mt-2">
+                        国民がメディアに真実を厳しく求める力。高くするとメディアの歪み(レンズの偏向)が自動で消え、司法の国民審査が活性化して司法が浮上します。
+                    </p>
+                </div>
+
+                <!-- スライダー2: SNSの誹謗中傷・ノイズ -->
+                <div class="bg-rose-950/20 hover:bg-rose-950/30 p-3.5 rounded-lg border border-rose-500/10 transition-colors">
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="slide-slander" class="text-xs font-semibold text-rose-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
+                            SNS誹謗中傷 / 精神ノイズ
+                        </label>
+                        <span id="val-slander" class="text-xs font-mono font-bold text-rose-400">0%</span>
+                    </div>
+                    <input type="range" id="slide-slander" min="0" max="100" value="0" class="w-full mt-2">
+                    <p class="text-[10px] text-slate-400 mt-2">
+                        SNS上での誹謗中傷やデマ。高くすると精神の伝導路に「位相の不調和」が発生し、球体全体が不規則に揺らぎ、安定度が致命的に低下します。
+                    </p>
+                </div>
+
+                <!-- スライダー3: 外圧 (行政への一方的負荷) -->
+                <div class="bg-amber-950/20 hover:bg-amber-950/30 p-3.5 rounded-lg border border-amber-500/10 transition-colors">
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="slide-foreign" class="text-xs font-semibold text-amber-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                            外国からの圧力 (外圧)
+                        </label>
+                        <span id="val-foreign" class="text-xs font-mono font-bold text-amber-400">0%</span>
+                    </div>
+                    <input type="range" id="slide-foreign" min="0" max="100" value="0" class="w-full mt-2">
+                    <p class="text-[10px] text-slate-400 mt-2">
+                        国際情勢の激変や外交的圧力。行政(B)にダイレクトに作用し、行政のみを不格好に外側へと肥大・伸長させ、社会の重心を大きく歪めます。
+                    </p>
+                </div>
+
+                <!-- スライダー4: 多数決のバグ (立法が行政に同調) -->
+                <div class="bg-indigo-950/20 hover:bg-indigo-950/30 p-3.5 rounded-lg border border-indigo-500/10 transition-colors">
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="slide-majority" class="text-xs font-semibold text-indigo-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+                            多数決のバグ (行政同調率)
+                        </label>
+                        <span id="val-majority" class="text-xs font-mono font-bold text-indigo-400">0%</span>
+                    </div>
+                    <input type="range" id="slide-majority" min="0" max="100" value="0" class="w-full mt-2">
+                    <p class="text-[10px] text-slate-400 mt-2">
+                        「数こそ正義」という数の暴力。立法の独自性が失われ、行政の強力な引き波と同調し、立法(A)が行政(B)に完全に吸収され一体化します。
+                    </p>
+                </div>
+
+                <!-- スライダー5: 犯罪発生率 (警察・執行機関の多忙化) -->
+                <div class="bg-slate-800/40 hover:bg-slate-800/50 p-3.5 rounded-lg border border-slate-700/30 transition-colors">
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="slide-crime" class="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                            犯罪発生率 (執行機関の過負荷)
+                        </label>
+                        <span id="val-crime" class="text-xs font-mono font-bold text-slate-300">0%</span>
+                    </div>
+                    <input type="range" id="slide-crime" min="0" max="100" value="0" class="w-full mt-2">
+                    <p class="text-[10px] text-slate-400 mt-2">
+                        社会不安と犯罪。警察や司法行政が目の前の対応（物理処理）に忙殺され、自律回復機能が阻害されます。「正確な情報の要求」の効果が大幅に減少します。
+                    </p>
+                </div>
+
+                <!-- スライダー6: 倫理・全体貢献 (精神の第三軸) -->
+                <div class="bg-emerald-950/20 hover:bg-emerald-950/30 p-3.5 rounded-lg border border-emerald-500/10 transition-colors">
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="slide-ethics" class="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            倫理・全体への調和意識
+                        </label>
+                        <span id="val-ethics" class="text-xs font-mono font-bold text-emerald-400">50%</span>
+                    </div>
+                    <input type="range" id="slide-ethics" min="0" max="100" value="50" class="w-full mt-2">
+                    <p class="text-[10px] text-slate-400 mt-2">
+                        個の利己心を超え、全体への最適化（J）を志向する。高めることでシステム全体の回転速度が上がり、強力な「ジャイロ復元力」を発生させて歪みを修正します。
+                    </p>
+                </div>
+            </div>
+
+            <!-- パネルD: 理論説明 -->
+            <div class="text-xs text-slate-400 bg-slate-950/40 rounded-lg p-4 border border-slate-800/80 leading-relaxed flex flex-col gap-2">
+                <h3 class="font-semibold text-slate-300 text-sm flex items-center gap-1">
+                    📖 トリテトラ理論の「バタフライ効果」
+                </h3>
+                <p>
+                    この3Dモデルにおいて、憲法を模した外接球の中に４つのパワーが存在します。<b>青（P: 国民主権）</b>、<b>紫（A: 立法）</b>、<b>赤（B: 行政）</b>、<b>緑（C: 司法）</b>。
+                </p>
+                <p>
+                    情報の要求を下げると、メディアの犬化（バイアス）によって<b>国民の目が眩み、司法を引っ張る糸が切れます</b>。司法は行政の人事権に飲み込まれて原点に没落し、底面の三角形は潰れ、社会は1次元的な「立法行政(AB) vs 国民(P)」の二極対立へと没落します。これが平面的な思考の正体です。
+                </p>
+                <p>
+                    しかし、国民がただ<b>「正確な情報を求める」</b>という小さな意識（スライダー）を高めるだけで、メディアは自浄作用を働かせ、沈んでいた司法を球面へと引っ張り戻します。司法が戻れば3次元空間が復元され、システムは自律的に回転を始め、肥大化した行政(B)を引きずり戻して調和を取り戻します。
+                </p>
+            </div>
+        </section>
+
+        <!-- 右側：3Dグラフィックス空間 -->
+        <section class="flex-1 relative bg-slate-950 flex flex-col">
+            
+            <!-- キャンバス -->
+            <div id="canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+            
+            <!-- 3Dオーバーレイ：現在のリアルタイム状況テキスト -->
+            <div class="absolute bottom-6 left-6 right-6 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pointer-events-auto">
+                <div>
+                    <span class="text-[10px] font-bold tracking-wider text-sky-400 block mb-1">CURRENT SYSTEM METAPHOR</span>
+                    <p id="narrative-text" class="text-xs md:text-sm text-slate-300 font-medium">
+                        ロード中...
+                    </p>
+                </div>
+                <div class="flex gap-4 border-t md:border-t-0 border-slate-800 w-full md:w-auto pt-3 md:pt-0">
+                    <div class="text-xs">
+                        <span class="text-slate-400 block text-[10px]">偏心距離 (G-O)</span>
+                        <span id="g-distance" class="font-mono font-bold text-slate-200">0.00</span>
+                    </div>
+                    <div class="text-xs">
+                        <span class="text-slate-400 block text-[10px]">回転角速度 (ω)</span>
+                        <span id="rot-speed" class="font-mono font-bold text-slate-200">0.01 rad/s</span>
+                    </div>
+                    <div class="text-xs">
+                        <span class="text-slate-400 block text-[10px]">司法沈没度</span>
+                        <span id="c-collapse" class="font-mono font-bold text-slate-200">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- カメラ方向指示器 -->
+            <div class="absolute top-6 right-6 bg-slate-900/60 backdrop-blur-sm border border-slate-800/80 rounded px-3 py-1.5 text-[10px] text-slate-400 pointer-events-none flex flex-col gap-0.5">
+                <span>🖱️ ドラッグで回転</span>
+                <span>🖱️ スクロールでズーム</span>
+                <span>🖱️ 右クリックで並行移動</span>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950 px-6 py-2 text-center text-[10px] text-slate-500">
+        Tri-Tetra Theory Governor Engine v2.5-Stable © 2026. すべての計算はクォータニオン三次元幾何変換に準拠。
+    </footer>
+
+    <!-- シミュレーション制御スクリプト -->
+    <script>
+        // --- 1. グローバル定数と状態変数の定義 ---
+        const SPHERE_RADIUS = 3.0; // 外接球の基本半径 R
+        
+        // スライダー要素の参照
+        const sliders = {
+            accuracy: document.getElementById('slide-accuracy'),
+            slander: document.getElementById('slide-slander'),
+            foreign: document.getElementById('slide-foreign'),
+            majority: document.getElementById('slide-majority'),
+            crime: document.getElementById('slide-crime'),
+            ethics: document.getElementById('slide-ethics')
+        };
+
+        // スライダー表示テキストの参照
+        const valTexts = {
+            accuracy: document.getElementById('val-accuracy'),
+            slander: document.getElementById('val-slander'),
+            foreign: document.getElementById('val-foreign'),
+            majority: document.getElementById('val-majority'),
+            crime: document.getElementById('val-crime'),
+            ethics: document.getElementById('val-ethics')
+        };
+
+        // UI表示指標の参照
+        const stabilityText = document.getElementById('stability-text');
+        const stabilityBar = document.getElementById('stability-bar');
+        const dissatisfactionText = document.getElementById('dissatisfaction-text');
+        const dissatisfactionBar = document.getElementById('dissatisfaction-bar');
+        const mediaStatusText = document.getElementById('media-status-text');
+        const dimensionStatusText = document.getElementById('dimension-status-text');
+        const systemStatusBadge = document.getElementById('system-status-badge');
+        const narrativeText = document.getElementById('narrative-text');
+        
+        // 詳細値
+        const gDistanceSpan = document.getElementById('g-distance');
+        const rotSpeedSpan = document.getElementById('rot-speed');
+        const cCollapseSpan = document.getElementById('c-collapse');
+
+        // 各種係数
+        let inputVals = {
+            accuracy: 1.0, // 0 to 1
+            slander: 0.0,  // 0 to 1
+            foreign: 0.0,  // 0 to 1
+            majority: 0.0, // 0 to 1
+            crime: 0.0,    // 0 to 1
+            ethics: 0.5    // 0 to 1
+        };
+
+        // --- 2. Three.js シーンのセットアップ ---
+        let scene, camera, renderer, controls;
+        let mainGroup; // 回転を一括管理するグループ
+
+        // 3Dオブジェクト
+        let outerSphere; // 外接球
+        let sphereWire; // 外接球ワイヤーフレーム
+        let originMarker; // 中心点 O
+
+        // 頂点ノード
+        let nodeP; // 国民主権 (Blue)
+        let nodeA; // 立法 (Purple)
+        let nodeB; // 行政 (Red)
+        let nodeC; // 司法 (Green)
+        let nodeG; // 重心 (Yellow)
+        let nodePStar; // 権力ゼロ点 (Dark grey ring)
+
+        // 頂点を結ぶライン（四面体の辺）
+        let edgeLines = []; // A-B, B-C, C-A, P-A, P-B, P-C の接続ライン
+        let linkPCLine; // P と C の結合を示す光線
+        let linkGOStarLine; // G と P* を結ぶライン (不満の軸)
+
+        // 頂点と重心の現在位置 (動的なLERP補間用)
+        let currPos = {
+            P: new THREE.Vector3(0, SPHERE_RADIUS, 0),
+            A: new THREE.Vector3(),
+            B: new THREE.Vector3(),
+            C: new THREE.Vector3(),
+            G: new THREE.Vector3(0, 0, 0),
+            PStar: new THREE.Vector3(0, -SPHERE_RADIUS, 0)
+        };
+
+        // 理想の位置の計算 (基本正三角形＋頂点)
+        function getIdealVertices() {
+            const h = -SPHERE_RADIUS / 3.0; // 南緯 1/3
+            const rPrime = Math.sqrt(SPHERE_RADIUS * SPHERE_RADIUS - h * h); // 緯線円の半径
+            
+            return {
+                P: new THREE.Vector3(0, SPHERE_RADIUS, 0),
+                A: new THREE.Vector3(rPrime * Math.cos(0), h, rPrime * Math.sin(0)),
+                B: new THREE.Vector3(rPrime * Math.cos(2 * Math.PI / 3), h, rPrime * Math.sin(2 * Math.PI / 3)),
+                C: new THREE.Vector3(rPrime * Math.cos(4 * Math.PI / 3), h, rPrime * Math.sin(4 * Math.PI / 3))
+            };
+        }
+
+        const ideal = getIdealVertices();
+
+        // 初期化処理
+        function init3D() {
+            const container = document.getElementById('canvas-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x020617, 0.02);
+
+            camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+            camera.position.set(0, 4, 11);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxDistance = 25;
+            controls.minDistance = 4;
+
+            // ライト
+            const ambientLight = new THREE.AmbientLight(0x0f172a, 1.5);
+            scene.add(ambientLight);
+
+            const dirLight1 = new THREE.DirectionalLight(0xffffff, 2.0);
+            dirLight1.position.set(5, 10, 7);
+            scene.add(dirLight1);
+
+            const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 1.5);
+            dirLight2.position.set(-5, -5, -5);
+            scene.add(dirLight2);
+
+            // メイン回転グループ
+            mainGroup = new THREE.Group();
+            scene.add(mainGroup);
+
+            // --- 3Dマテリアル定義 ---
+            const matP = new THREE.MeshPhongMaterial({ color: 0x0ea5e9, emissive: 0x0ea5e9, emissiveIntensity: 0.4, shininess: 80 }); // 国民
+            const matA = new THREE.MeshPhongMaterial({ color: 0xa855f7, emissive: 0xa855f7, emissiveIntensity: 0.4, shininess: 80 }); // 立法
+            const matB = new THREE.MeshPhongMaterial({ color: 0xef4444, emissive: 0xef4444, emissiveIntensity: 0.4, shininess: 80 }); // 行政
+            const matC = new THREE.MeshPhongMaterial({ color: 0x10b981, emissive: 0x10b981, emissiveIntensity: 0.4, shininess: 80 }); // 司法
+            const matG = new THREE.MeshBasicMaterial({ color: 0xf59e0b }); // 重心
+            const matO = new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true }); // 原点
+
+            // ノード作成
+            const geomNode = new THREE.SphereGeometry(0.24, 32, 32);
+            nodeP = new THREE.Mesh(geomNode, matP);
+            nodeA = new THREE.Mesh(geomNode, matA);
+            nodeB = new THREE.Mesh(geomNode, matB);
+            nodeC = new THREE.Mesh(geomNode, matC);
+            nodeG = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), matG);
+            nodePStar = new THREE.Mesh(
+                new THREE.RingGeometry(0.25, 0.3, 32), 
+                new THREE.MeshBasicMaterial({ color: 0x475569, side: THREE.DoubleSide })
+            );
+            nodePStar.rotation.x = Math.PI / 2;
+
+            mainGroup.add(nodeP);
+            mainGroup.add(nodeA);
+            mainGroup.add(nodeB);
+            mainGroup.add(nodeC);
+            mainGroup.add(nodeG);
+            mainGroup.add(nodePStar);
+
+            // 原点マーカー (基準ターゲット)
+            originMarker = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), matO);
+            mainGroup.add(originMarker);
+
+            // 外接球の作成 (ゴーストグリッド調)
+            const geomSphere = new THREE.SphereGeometry(SPHERE_RADIUS, 40, 40);
+            outerSphere = new THREE.Mesh(geomSphere, new THREE.MeshPhysicalMaterial({
+                color: 0x0ea5e9,
+                transparent: true,
+                opacity: 0.03,
+                roughness: 0.1,
+                transmission: 0.6,
+                thickness: 0.5,
+                side: THREE.DoubleSide
+            }));
+            
+            sphereWire = new THREE.LineSegments(
+                new THREE.WireframeGeometry(geomSphere),
+                new THREE.LineBasicMaterial({
+                    color: 0x0ea5e9,
+                    transparent: true,
+                    opacity: 0.12,
+                    blending: THREE.AdditiveBlending
+                })
+            );
+
+            mainGroup.add(outerSphere);
+            mainGroup.add(sphereWire);
+
+            // ラインの初期化
+            const lineMatDefault = new THREE.LineBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.4 });
+            const lineGeom = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]);
+            
+            // 四面体の辺(6本)
+            for(let i=0; i<6; i++) {
+                const line = new THREE.Line(lineGeom.clone(), lineMatDefault.clone());
+                edgeLines.push(line);
+                mainGroup.add(line);
+            }
+
+            // 国民Pから司法Cへの「審判・チェック」を示すライン (正確性に応じて輝く)
+            linkPCLine = new THREE.Line(lineGeom.clone(), new THREE.LineBasicMaterial({
+                color: 0x10b981, 
+                transparent: true, 
+                opacity: 0.0,
+                blending: THREE.AdditiveBlending
+            }));
+            mainGroup.add(linkPCLine);
+
+            // 不満の軸 (GからP*に伸びるライン)
+            linkGOStarLine = new THREE.Line(lineGeom.clone(), new THREE.LineBasicMaterial({
+                color: 0xf43f5e,
+                transparent: true,
+                opacity: 0.0,
+                blending: THREE.AdditiveBlending
+            }));
+            mainGroup.add(linkGOStarLine);
+
+            // アニメーションループ開始
+            animate();
+        }
+
+        // ウィンドウリサイズ対応
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        // カメラリセット
+        document.getElementById('btn-reset-camera').addEventListener('click', () => {
+            controls.reset();
+            camera.position.set(0, 4, 11);
+        });
+
+        // --- 3. 動的数理ロジックと座標変換 ---
+        let rotationTime = 0;
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // スライダー値を係数に変換
+            inputVals.accuracy = parseFloat(sliders.accuracy.value) / 100.0;
+            inputVals.slander = parseFloat(sliders.slander.value) / 100.0;
+            inputVals.foreign = parseFloat(sliders.foreign.value) / 100.0;
+            inputVals.majority = parseFloat(sliders.majority.value) / 100.0;
+            inputVals.crime = parseFloat(sliders.crime.value) / 100.0;
+            inputVals.ethics = parseFloat(sliders.ethics.value) / 100.0;
+
+            // テキスト更新
+            valTexts.accuracy.innerText = Math.round(inputVals.accuracy * 100) + '%';
+            valTexts.slander.innerText = Math.round(inputVals.slander * 100) + '%';
+            valTexts.foreign.innerText = Math.round(inputVals.foreign * 100) + '%';
+            valTexts.majority.innerText = Math.round(inputVals.majority * 100) + '%';
+            valTexts.crime.innerText = Math.round(inputVals.crime * 100) + '%';
+            valTexts.ethics.innerText = Math.round(inputVals.ethics * 100) + '%';
+
+            // 1. 各パラメータの相乗影響の計算
+            // 犯罪発生率(crime)は「正確な情報の要求(accuracy)」の実効性を減退させる
+            const effectiveAccuracy = inputVals.accuracy * (1.0 - 0.6 * inputVals.crime);
+
+            // 2. ターゲット座標の算出
+            // A. 国民主権(P)のターゲット: 正確性に応じて北極(R)に近づく。不正確な場合は中心へ落ち込む
+            const targetPY = SPHERE_RADIUS * (0.15 + 0.85 * effectiveAccuracy);
+            const targetP = new THREE.Vector3(0, targetPY, 0);
+
+            // B. 司法(C)のターゲット: 正確性(国民審査のリンク)に応じて球面に引っ張られる。無ければ原点(0,0,0)へ。
+            const targetC = ideal.C.clone().multiplyScalar(0.05 + 0.95 * effectiveAccuracy);
+
+            // C. 行政(B)のターゲット: 外圧によって緯線円を超えて引き伸ばされる
+            const targetB = ideal.B.clone().multiplyScalar(1.0 + 0.9 * inputVals.foreign);
+
+            // D. 立法(A)のターゲット: 多数決バグにより、本来の位置から行政(B)の方向へ吸収されていく
+            const targetA = ideal.A.clone().multiplyScalar(1.0 - 0.95 * inputVals.majority)
+                                     .add(targetB.clone().multiplyScalar(0.95 * inputVals.majority));
+
+            // E. SNS誹謗中傷による微細な高周波ノイズの付与
+            const time = performance.now() * 0.003;
+            if (inputVals.slander > 0) {
+                const noiseAmp = inputVals.slander * 0.4;
+                const addNoise = (v, phase) => {
+                    v.x += Math.sin(time * 25 + phase) * noiseAmp;
+                    v.y += Math.cos(time * 22 + phase) * noiseAmp;
+                    v.z += Math.sin(time * 19 + phase) * noiseAmp;
+                };
+                addNoise(targetP, 1);
+                addNoise(targetA, 2);
+                addNoise(targetB, 3);
+                addNoise(targetC, 4);
+            }
+
+            // 3. 補間 (LERP) によるスムーズな動的トランスフォーム
+            const lerpFactor = 0.05; // 追従速度
+            currPos.P.lerp(targetP, lerpFactor);
+            currPos.A.lerp(targetA, lerpFactor);
+            currPos.B.lerp(targetB, lerpFactor);
+            currPos.C.lerp(targetC, lerpFactor);
+
+            // ノードの位置更新
+            nodeP.position.copy(currPos.P);
+            nodeA.position.copy(currPos.A);
+            nodeB.position.copy(currPos.B);
+            nodeC.position.copy(currPos.C);
+
+            // 4. 全体の重心 (G) の算出
+            const currG = new THREE.Vector3()
+                .add(currPos.P)
+                .add(currPos.A)
+                .add(currPos.B)
+                .add(currPos.C)
+                .multiplyScalar(0.25);
+            
+            currPos.G.lerp(currG, lerpFactor);
+            nodeG.position.copy(currPos.G);
+
+            // 5. 権力ゼロ点 (P*) の設定: Pの重心Gに対する点対称な位置
+            // PからGを通り、外接球の対極に突入する。
+            const directionPG = new THREE.Vector3().subVectors(currPos.G, currPos.P);
+            let targetPStar = new THREE.Vector3();
+            if (directionPG.lengthSq() > 0.001) {
+                targetPStar.copy(directionPG).normalize().multiplyScalar(SPHERE_RADIUS);
+            } else {
+                targetPStar.set(0, -SPHERE_RADIUS, 0); // デフォルト
+            }
+            currPos.PStar.lerp(targetPStar, lerpFactor);
+            nodePStar.position.copy(currPos.PStar);
+            // P*リングの向きを法線に合わせる
+            const lookTarget = currPos.PStar.clone().add(currPos.PStar.clone().normalize());
+            nodePStar.lookAt(lookTarget);
+
+            // 6. 3D形状変化と外接球の歪みの表現
+            // 行政(B)の突出と全体の不均衡さに応じて、球体を不格好に変形させる
+            const biasLength = currPos.G.length(); // 重心のズレ
+            const deformationScaleX = 1.0 + inputVals.foreign * 0.25;
+            const deformationScaleY = 1.0;
+            const deformationScaleZ = 1.0 + inputVals.majority * 0.15;
+            
+            outerSphere.scale.set(deformationScaleX, deformationScaleY, deformationScaleZ);
+            sphereWire.scale.set(deformationScaleX, deformationScaleY, deformationScaleZ);
+
+            // 安定度に応じた球体の色の変化 (青(安定) ↔ 赤(歪み/危機))
+            const stability = calculateStability(biasLength, targetC);
+            const rColor = Math.min(1.0, (100 - stability) / 80.0);
+            const gColor = Math.min(1.0, stability / 80.0) * 0.8;
+            const bColor = Math.min(1.0, stability / 50.0);
+
+            outerSphere.material.color.setRGB(rColor, gColor, bColor);
+            sphereWire.material.color.setRGB(rColor, gColor, bColor);
+
+            // 7. ライン関係の更新
+            updateLine(edgeLines[0], currPos.A, currPos.B);
+            updateLine(edgeLines[1], currPos.B, currPos.C);
+            updateLine(edgeLines[2], currPos.C, currPos.A);
+            updateLine(edgeLines[3], currPos.P, currPos.A);
+            updateLine(edgeLines[4], currPos.P, currPos.B);
+            updateLine(edgeLines[5], currPos.P, currPos.C);
+
+            // 国民と司法のリンク光線 (正確性・審査能力が高いほど輝く)
+            updateLine(linkPCLine, currPos.P, currPos.C);
+            linkPCLine.material.opacity = effectiveAccuracy * 0.8;
+
+            // 不満・爆発の伝導路 (GからP*に伸びる赤い警告ライン)
+            updateLine(linkGOStarLine, currPos.G, currPos.PStar);
+            linkGOStarLine.material.opacity = Math.min(0.9, biasLength * 0.7);
+
+            // 8. 回転プロセスのシミュレーション
+            // 倫理の強さ(ethics)と安定度(stability)から、ジャイロ効果の回転力(ω)を決定
+            // 誹謗中傷(slander)が多いと軸が揺らぐ
+            const omega = 0.005 + (inputVals.ethics * 0.02) * (stability / 100.0);
+            rotationTime += omega;
+
+            // 回転アニメーション (Y軸周りの回転)
+            mainGroup.rotation.y = rotationTime;
+
+            // 誹謗中傷ノイズによるカメラや軸のランダムブレ
+            if(inputVals.slander > 0.5) {
+                mainGroup.rotation.x = Math.sin(time * 10) * (inputVals.slander * 0.05);
+                mainGroup.rotation.z = Math.cos(time * 12) * (inputVals.slander * 0.05);
+            } else {
+                mainGroup.rotation.x = 0;
+                mainGroup.rotation.z = 0;
+            }
+
+            // コントロール類のレンダリング
+            controls.update();
+            renderer.render(scene, camera);
+
+            // リアルタイムUIの更新
+            updateUI(stability, biasLength, targetC, omega);
+        }
+
+        // 補助関数: ラインの点情報の更新
+        function updateLine(lineObject, ptA, ptB) {
+            const positions = [
+                ptA.x, ptA.y, ptA.z,
+                ptB.x, ptB.y, ptB.z
+            ];
+            lineObject.geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            lineObject.geometry.computeBoundingSphere();
+            lineObject.geometry.attributes.position.needsUpdate = true;
+        }
+
+        // --- 4. 安定性と統治状態の動的数理判定 ---
+        function calculateStability(gDist, currentC) {
+            // 1. 重心のズレ（不平不満）を基盤に計算。ズレが大きいほど不安定。
+            const gFactor = Math.max(0, 100 - (gDist / 1.5) * 100);
+
+            // 2. 司法Cの没落度（原点からの距離比率）
+            const idealCDist = ideal.C.length();
+            const currentCDist = currentC.length();
+            const cFactor = (currentCDist / idealCDist) * 100;
+
+            // 3. 多数決による立法Aの行政Bへの癒着
+            const aFactor = Math.max(0, 100 - inputVals.majority * 80);
+
+            // 総合安定度の算出
+            let total = gFactor * 0.4 + cFactor * 0.4 + aFactor * 0.2;
+
+            // 精神ノイズ(slander)による減衰
+            total -= inputVals.slander * 30;
+
+            return Math.max(0, Math.min(100, Math.round(total)));
+        }
+
+        // UI情報の更新
+        function updateUI(stability, gDist, currentC, omega) {
+            // 1. 安定度テキスト & メーター
+            stabilityBar.style.width = stability + '%';
+            if (stability >= 80) {
+                stabilityText.innerText = `${stability}% (極めて調和・安泰)`;
+                stabilityText.className = "font-bold text-emerald-400 glow-emerald";
+                stabilityBar.className = "h-full bg-gradient-to-r from-emerald-500 to-sky-400";
+                
+                systemStatusBadge.innerText = "状態: 健全・三次元調和";
+                systemStatusBadge.className = "px-3 py-1 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+            } else if (stability >= 50) {
+                stabilityText.innerText = `${stability}% (偏心・安定低下)`;
+                stabilityText.className = "font-bold text-amber-400";
+                stabilityBar.className = "h-full bg-amber-500";
+                
+                systemStatusBadge.innerText = "状態: 均衡に歪み";
+                systemStatusBadge.className = "px-3 py-1 text-xs font-semibold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20";
+            } else {
+                stabilityText.innerText = `${stability}% (危険・臨界状態)`;
+                stabilityText.className = "font-bold text-rose-500 animate-pulse";
+                stabilityBar.className = "h-full bg-rose-600";
+                
+                systemStatusBadge.innerText = "状態: 1次元崩壊の危機";
+                systemStatusBadge.className = "px-3 py-1 text-xs font-semibold rounded-full bg-rose-500/10 text-rose-500 border border-rose-500/20 animate-bounce";
+            }
+
+            // 2. 不満メーター
+            const disPercent = Math.min(100, Math.round((gDist / 1.5) * 100));
+            dissatisfactionBar.style.width = disPercent + '%';
+            dissatisfactionText.innerText = `${gDist.toFixed(2)} (爆発リスク: ${disPercent}%)`;
+            if (disPercent >= 70) {
+                dissatisfactionText.className = "font-bold text-rose-500 animate-pulse";
+            } else if (disPercent >= 40) {
+                dissatisfactionText.className = "font-bold text-amber-400";
+            } else {
+                dissatisfactionText.className = "font-bold text-slate-400";
+            }
+
+            // 3. 各種詳細表示の更新
+            gDistanceSpan.innerText = gDist.toFixed(3);
+            rotSpeedSpan.innerText = (omega * 60).toFixed(2) + " rad/s";
+            
+            const cCollapse = Math.round((1.0 - (currentC.length() / ideal.C.length())) * 100);
+            cCollapseSpan.innerText = cCollapse + "%";
+            if(cCollapse >= 70) {
+                cCollapseSpan.className = "font-mono font-bold text-rose-500 animate-pulse";
+            } else {
+                cCollapseSpan.className = "font-mono font-bold text-slate-200";
+            }
+
+            // 4. メディア状態テキスト
+            const effectiveAccuracy = inputVals.accuracy * (1.0 - 0.6 * inputVals.crime);
+            if (effectiveAccuracy >= 0.8) {
+                mediaStatusText.innerText = "📡 独立自尊 (オオカミ)";
+                mediaStatusText.className = "font-semibold text-emerald-400";
+            } else if (effectiveAccuracy >= 0.4) {
+                mediaStatusText.innerText = "🐕 飼い慣らし (飼い犬)";
+                mediaStatusText.className = "font-semibold text-amber-400";
+            } else {
+                mediaStatusText.innerText = "🤫 隷属プロパガンダ";
+                mediaStatusText.className = "font-semibold text-rose-500";
+            }
+
+            // 5. 統治構造の次元テキスト
+            if (cCollapse < 30 && inputVals.majority < 0.3) {
+                dimensionStatusText.innerText = "立体3次元 (四面体)";
+                dimensionStatusText.className = "font-semibold text-sky-400 glow-cyan";
+            } else if (cCollapse >= 80 && inputVals.majority >= 80) {
+                dimensionStatusText.innerText = "極めて平坦1次元 (潰れ)";
+                dimensionStatusText.className = "font-semibold text-rose-500 animate-pulse";
+            } else {
+                dimensionStatusText.innerText = "歪んだ2次元 (平面化)";
+                dimensionStatusText.className = "font-semibold text-amber-400";
+            }
+
+            // 6. メタファーのナラティブ（語り口）動的生成
+            updateNarrative(stability, cCollapse, disPercent);
+        }
+
+        // 動的ナラティブ生成
+        function updateNarrative(stability, cCollapse, disPercent) {
+            let story = "";
+
+            if (inputVals.slander > 0.6) {
+                story = "⚠️ SNS上の誹謗中傷やデマが蔓延し、精神の回転プロセスが激しく乱れています。ジャイロ効果が失われ、社会に激しい震動が発生しています。";
+            } else if (inputVals.crime > 0.6 && stability < 50) {
+                story = "🔥 治安の悪化と犯罪処理により行政（警察）が多忙化。システムの自浄機能・回復プロセスが凍結され、国民の正確な要求が形になりません。";
+            } else if (stability >= 85) {
+                story = "🍀 「国民が正確な情報を求める」ことで情報空間の歪みが完全に矯正され、司法も本来の球面に戻りました。ジャイロの美しい調和が、行政の暴走を防いでいます。";
+            } else if (cCollapse >= 75 && inputVals.majority >= 75) {
+                story = "💔 【1次元的二極対立】 司法は任命権に屈して没落(原点へ沈没)。国会は多数決の暴力で行政に同調。国民主権(P)と立法行政(AB)の一本線に潰れ、国民の不満が爆発寸前です！";
+            } else if (inputVals.foreign > 0.6 && stability < 60) {
+                story = "🌍 外圧による過剰な引力が行政(B)に加わり、歪みが急拡大。立法や国民がそれに追従させられる危険なアンバランスが発生しています。";
+            } else if (inputVals.accuracy > 0.6) {
+                story = "🦋 【バタフライ効果】 国民が正確な情報を求め始めたため、切れていた司法の張力が回復中。ゆっくりと統治構造が3次元の調和に向かって起き上がり始めています。";
+            } else {
+                story = "⚠️ 情報のバイアスにより国民が目を曇らされています。司法審査は機能せず、行政主導の意思決定が社会の重心を本来の中心から遠ざけています。";
+            }
+
+            narrativeText.innerText = story;
+        }
+
+        // --- 5. プリセット制御 ---
+        function applyPreset(type) {
+            let targets = {};
+
+            switch (type) {
+                case 'ideal':
+                    targets = { accuracy: 100, slander: 0, foreign: 0, majority: 0, crime: 0, ethics: 80 };
+                    break;
+                case 'collapsed':
+                    targets = { accuracy: 10, slander: 30, foreign: 10, majority: 85, crime: 20, ethics: 30 };
+                    break;
+                case 'runaway':
+                    targets = { accuracy: 20, slander: 40, foreign: 85, majority: 70, crime: 60, ethics: 20 };
+                    break;
+                case 'butterfly':
+                    targets = { accuracy: 85, slander: 5, foreign: 20, majority: 15, crime: 5, ethics: 75 };
+                    break;
+            }
+
+            // スライダー値を即座に反映してアニメーション
+            Object.keys(targets).forEach(key => {
+                const slider = sliders[key];
+                slider.value = targets[key];
+            });
+        }
+
+        // 起動時にデフォルト設定（理想状態）を適用
+        window.onload = function () {
+            applyPreset('ideal');
+            init3D();
+        }
+    </script>
+</body>
+</html>
