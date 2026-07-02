@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Oss-Wee: 四柱で囲め - Tritetra Emblem -->
+  <title>四柱で囲め - Oss-Wee Emblem</title>
+  <desc>3人の当事者を4本の柱で囲むトリテトラ理論のアイコン</desc>
+  
+  <!-- 背景: 黒 = ターミナル, 司法への墨汁 -->
+  <rect width="256" height="256" fill="#000000"/>
+  
+  <!-- 外枠の四柱 = 立法・行政・司法・主権者 -->
+  <!-- 上: 立法 -->
+  <rect x="112" y="16" width="32" height="48" fill="#00FF00"/>
+  <text x="128" y="44" font-family="monospace" font-size="20" fill="#000" text-anchor="middle" font-weight="bold">立</text>
+  
+  <!-- 右: 司法 -->
+  <rect x="192" y="112" width="48" height="32" fill="#00FF00"/>
+  <text x="216" y="134" font-family="monospace" font-size="20" fill="#000" text-anchor="middle" font-weight="bold">司</text>
+  
+  <!-- 下: 行政 -->
+  <rect x="112" y="192" width="32" height="48" fill="#00FF00"/>
+  <text x="128" y="220" font-family="monospace" font-size="20" fill="#000" text-anchor="middle" font-weight="bold">行</text>
+  
+  <!-- 左: 主権者 -->
+  <rect x="16" y="112" width="48" height="32" fill="#00FF00"/>
+  <text x="40" y="134" font-family="monospace" font-size="20" fill="#000" text-anchor="middle" font-weight="bold">主</text>
+  
+  <!-- 中央の3人 = 悪A・悪B・自分 -->
+  <!-- 悪A -->
+  <circle cx="98" cy="98" r="14" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+  <text x="98" y="103" font-family="monospace" font-size="12" fill="#FFF" text-anchor="middle">A</text>
+  
+  <!-- 悪B -->
+  <circle cx="158" cy="98" r="14" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+  <text x="158" y="103" font-family="monospace" font-size="12" fill="#FFF" text-anchor="middle">B</text>
+  
+  <!-- 自分 -->
+  <circle cx="128" cy="148" r="16" fill="#FFFFFF"/>
+  <text x="128" y="153" font-family="monospace" font-size="14" fill="#000" text-anchor="middle" font-weight="bold">俺</text>
+  
+  <!-- 四柱の接続線 = 包囲網 -->
+  <path d="M128 64 L98 84 M128 64 L158 84 M64 128 L84 98 M64 128 L112 148 M128 192 L112 164 M128 192 L144 164 M192 128 L172 98 M192 128 L144 148" 
+        stroke="#00FF00" stroke-width="2" opacity="0.6"/>
+  
+  <!-- 下部テキスト -->
+  <text x="128" y="244" font-family="monospace" font-size="14" fill="#00FF00" text-anchor="middle" font-weight="bold">四柱で囲め</text>
+</svg>
