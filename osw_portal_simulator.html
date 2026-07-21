@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSW Project - オッスウィー Portal & Interactive Space</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind Config for custom transitions & gradients -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        spaceBlack: '#05050e',
+                        deepSpace: '#0b0c1e',
+                        oswCyan: '#00f0ff',
+                        oswPurple: '#bd00ff',
+                        oswPink: '#ff007a',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'spin-slow': 'spin 12s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js for 3D Simulation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Tone.js for Anthem Chill Trap Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        /* Custom scrollbar for premium feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #05050e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2042;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00f0ff;
+        }
+        /* Custom Glowing effects */
+        .neon-glow-cyan {
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.6), 0 0 20px rgba(0, 240, 255, 0.3);
+        }
+        .neon-glow-purple {
+            text-shadow: 0 0 10px rgba(189, 0, 255, 0.6), 0 0 20px rgba(189, 0, 255, 0.3);
+        }
+        .neon-border-cyan {
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+            border: 1px solid rgba(0, 240, 255, 0.4);
+        }
+        .neon-border-purple {
+            box-shadow: 0 0 15px rgba(189, 0, 255, 0.25);
+            border: 1px solid rgba(189, 0, 255, 0.4);
+        }
+        /* Interactive stars canvas style */
+        #starCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-spaceBlack text-slate-100 font-inter overflow-x-hidden min-h-screen relative selection:bg-oswCyan selection:text-spaceBlack">
+
+<!-- Particle Background for Star-gazing Concept -->
+<canvas id="starCanvas"></canvas>
+
+<!-- Subtle Ambient Mesh Grid -->
+<div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none z-0"></div>
+
+<!-- Top Navigation -->
+<nav class="relative z-30 border-b border-white/10 bg-spaceBlack/80 backdrop-blur-md py-4 px-6 sticky top-0">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <span class="text-2xl font-bold bg-gradient-to-r from-oswCyan via-oswPurple to-oswPink bg-clip-text text-transparent tracking-widest">OSW PROJECT</span>
+            <span class="text-xs bg-white/10 text-slate-400 px-2 py-0.5 rounded-full tracking-wider">オッスウィー v1.2</span>
+        </div>
+        <div class="hidden md:flex space-x-8 text-sm font-semibold tracking-wide text-slate-300">
+            <a href="#philosophy" class="hover:text-oswCyan transition-colors">👁️ 理念</a>
+            <a href="#simulator" class="hover:text-oswCyan transition-colors">🌌 3D空っぽ次元</a>
+            <a href="#anthem" class="hover:text-oswPurple transition-colors">🎵 憲章(Anthem)</a>
+            <a href="#wall" class="hover:text-oswPink transition-colors">🖐️ Witness (手のひら)</a>
+        </div>
+        <div class="flex items-center space-x-4">
+            <a href="https://github.com/kiki054-n/oss-wee" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-lg bg-white/5 border border-white/15 hover:bg-white/10 transition-all text-xs flex items-center space-x-2">
+                <i class="fab fa-github text-sm"></i>
+                <span>Repository</span>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<header class="relative z-10 pt-16 pb-24 px-6 max-w-7xl mx-auto flex flex-col items-center text-center">
+    <!-- Glow Effect Backing -->
+    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-oswCyan/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+    <div class="absolute top-1/3 left-1/3 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-oswPurple/10 rounded-full blur-3xl -z-10 pointer-events-none"></div>
+
+    <!-- Badge -->
+    <div class="inline-flex items-center gap-2 bg-gradient-to-r from-oswCyan/20 to-oswPurple/20 text-oswCyan text-xs px-4 py-1.5 rounded-full border border-oswCyan/30 mb-8 animate-pulse-slow">
+        <i class="fas fa-fingerprint"></i>
+        <span>Open Source, We Use.</span>
+    </div>
+
+    <!-- Main Heading -->
+    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+        中心（まんなか）空っぽ、<br class="sm:hidden">誰も座らない。<br>
+        <span class="bg-gradient-to-r from-oswCyan via-oswPurple to-oswPink bg-clip-text text-transparent">
+            三角を突き抜け、Zの風を起こす
+        </span>
+    </h1>
+
+    <p class="text-slate-400 text-lg sm:text-xl max-w-3xl mb-12 leading-relaxed">
+        誰が敵で誰が味方かを奪い合う、2次元の平面ゲームから静かに降ります。 <br class="hidden sm:inline">
+        目を開き、手のひらを開く。平面から次の次元へ。Z軸方向へ、みんなで舞い上がろう。
+    </p>
+
+    <!-- Call to action & mini stats -->
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16 z-20">
+        <a href="#simulator" class="px-8 py-4 rounded-xl bg-gradient-to-r from-oswCyan to-oswPurple text-spaceBlack font-bold shadow-lg hover:shadow-cyan-500/20 hover:scale-105 transition-all text-sm tracking-widest uppercase">
+            3D次元シミュレータへ
+        </a>
+        <a href="#wall" class="px-8 py-4 rounded-xl bg-slate-900 border border-white/10 text-slate-200 font-semibold hover:bg-slate-800 transition-all text-sm flex items-center space-x-2">
+            <span>手のひらを開く (Witness UI)</span>
+            <i class="fas fa-hand-sparkles text-oswCyan"></i>
+        </a>
+    </div>
+
+    <!-- Floating visual concept card -->
+    <div class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+        <div class="p-6 rounded-2xl bg-slate-950/60 border border-white/5 backdrop-blur-md hover:border-oswCyan/40 transition-all group">
+            <div class="w-12 h-12 rounded-xl bg-oswCyan/10 flex items-center justify-center text-oswCyan mb-4 group-hover:scale-110 transition-transform">
+                <i class="fas fa-eye text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">1. 目を開け</h3>
+            <p class="text-sm text-slate-400">この分散型アジトを眺める。気になるものや、今あなたを包む不思議な光景を一つ、見つけること。</p>
+        </div>
+        <div class="p-6 rounded-2xl bg-slate-950/60 border border-white/5 backdrop-blur-md hover:border-oswPurple/40 transition-all group">
+            <div class="w-12 h-12 rounded-xl bg-oswPurple/10 flex items-center justify-center text-oswPurple mb-4 group-hover:scale-110 transition-transform">
+                <i class="fas fa-hand-paper text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">2. 汝の手を見よ</h3>
+            <p class="text-sm text-slate-400">あなたが今持っているもの――独自の技術、疑問の言葉、ささやかな時間、一つの意志を思い出すこと。</p>
+        </div>
+        <div class="p-6 rounded-2xl bg-slate-950/60 border border-white/5 backdrop-blur-md hover:border-oswPink/40 transition-all group">
+            <div class="w-12 h-12 rounded-xl bg-oswPink/10 flex items-center justify-center text-oswPink mb-4 group-hover:scale-110 transition-transform">
+                <i class="fas fa-seedling text-xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">3. 指にとまる</h3>
+            <p class="text-sm text-slate-400">Starで気配を示し、Forkで手元に連れて行く。Issueで問い、PRで風を渡す。未完成こそが美しい出来事。</p>
+        </div>
+    </div>
+</header>
+
+<!-- Philosophy Section -->
+<section id="philosophy" class="relative z-10 py-20 px-6 border-y border-white/5 bg-slate-950/40 backdrop-blur-sm">
+    <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-xs tracking-widest text-oswCyan uppercase font-bold mb-3">Philosophical Space</h2>
+            <h3 class="text-3xl sm:text-4xl font-extrabold text-white">🌌 星を見るように / Why "We", not "I"</h3>
+            <p class="text-slate-400 mt-4 max-w-2xl mx-auto text-sm">
+                答えを手渡されたように見えても、それが正しいかは一人では解らない。だから情報を、ひとりで使わないでください。
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <!-- Left: Conceptual Interactive Canvas Box -->
+            <div class="relative p-8 rounded-2xl bg-spaceBlack/80 border border-white/10 neon-border-cyan overflow-hidden h-[360px] flex flex-col justify-between">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-oswCyan/5 rounded-full blur-2xl"></div>
+                <div>
+                    <span class="text-xs text-oswCyan font-mono tracking-widest uppercase">Simulation of Stardust Verification</span>
+                    <h4 class="text-xl font-bold text-white mt-2 mb-4">別々の角度から、同じ星を観測する</h4>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        下部にある星をマウスでホバー、または指でタッチしてみてください。
+                        あなたが観測する軌跡が、他の角度の観測線と重なり合うとき、初めて意味という結晶を結びます。
+                    </p>
+                </div>
+                <!-- Interactive Mini Gazer Playground -->
+                <div id="gazerPlayground" class="relative w-full h-36 bg-slate-950 rounded-lg border border-white/5 overflow-hidden flex items-center justify-center cursor-crosshair">
+                    <div id="glowPoint" class="absolute w-6 h-6 rounded-full bg-oswCyan/40 blur-md pointer-events-none transition-all duration-75"></div>
+                    <div id="crosshairH" class="absolute left-0 right-0 h-[1px] bg-oswCyan/20 pointer-events-none"></div>
+                    <div id="crosshairV" class="absolute top-0 bottom-0 w-[1px] bg-oswCyan/20 pointer-events-none"></div>
+                    <span id="coordDisplay" class="absolute bottom-2 right-2 text-[10px] font-mono text-slate-500">X:000, Y:000</span>
+                    <span class="text-[10px] text-slate-500 font-mono absolute top-2 left-2 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span> Live Observation Matrix
+                    </span>
+                    <div class="text-center text-xs text-slate-400 p-4 select-none pointer-events-none">
+                        <i class="fas fa-satellite-dish text-oswCyan mb-2 text-lg animate-bounce"></i>
+                        <div class="font-semibold text-oswCyan tracking-wider" id="matrixText">光の観測を受け入れ中...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Beautiful typography with philosophical quotes -->
+            <div class="space-y-6">
+                <div class="border-l-2 border-oswPurple pl-6 space-y-4">
+                    <p class="text-slate-300 italic text-base leading-relaxed">
+                        「本当の敵は、どこにもいません。資本家も、公務員も、もともと誰かの敵だったわけではありません。敵は、こちらが『あれは敵だ』と決めつけた瞬間に生まれます。」
+                    </p>
+                    <p class="text-slate-300 italic text-base leading-relaxed">
+                        「『行いを止めること』と『人を敵に固定すること』は、別のことです。前者は要る。後者を、やめる。」
+                    </p>
+                </div>
+                <div class="p-6 rounded-xl bg-white/[0.02] border border-white/5">
+                    <h5 class="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
+                        <i class="fas fa-yin-yang text-oswPurple"></i>
+                        <span>友朋共生 — 友であり、共に在る</span>
+                    </h5>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        ひとりでいること、それは自分で自分を奴隷にすることでした。友がいなければ、人は生きられない。「We Use」は義務や強制ではありません。共有知が、本当の知恵になるための構造そのものなのです。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 3D Simulator Space -->
+<section id="simulator" class="relative z-10 py-20 px-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-12">
+            <h2 class="text-xs tracking-widest text-oswPurple uppercase font-bold mb-3">3D Interactive Core</h2>
+            <h3 class="text-3xl sm:text-4xl font-extrabold text-white">🪐 3D Tri-Tetra Space (Zの風)</h3>
+            <p class="text-slate-400 mt-4 max-w-2xl mx-auto text-sm">
+                頂点も支配もない「中心空っぽ」の構造を3Dシミュレート。ドラッグして回転させ、ピラミッド(平面)を突き抜ける$Z$軸の風を感じてください。
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+            <!-- Simulator Control & Specs Panel -->
+            <div class="lg:col-span-4 flex flex-col justify-between space-y-6">
+                <!-- Control Parameters Box -->
+                <div class="p-6 rounded-2xl bg-slate-950/80 border border-white/10 backdrop-blur-md flex flex-col justify-between h-full">
+                    <div>
+                        <div class="flex items-center gap-2 mb-4 text-oswCyan">
+                            <i class="fas fa-sliders-h"></i>
+                            <span class="text-sm font-bold uppercase tracking-wider">Control Chamber</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mb-6">
+                            3Dモデルの回転・エネルギー調整を行うことで、空っぽの中心から湧き出るZ軸の風ベクトルの風速をリアルタイムに変更できます。
+                        </p>
+
+                        <!-- Slider Controls -->
+                        <div class="space-y-5">
+                            <div>
+                                <div class="flex justify-between text-xs font-mono mb-2">
+                                    <span class="text-slate-400">Z-Axis wind intensity (Zの風速)</span>
+                                    <span id="windSpeedVal" class="text-oswCyan">1.0x</span>
+                                </div>
+                                <input type="range" id="windSpeedSlider" min="0" max="4" step="0.1" value="1.0" class="w-full accent-oswCyan bg-slate-800 rounded-lg appearance-none h-2 cursor-pointer">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs font-mono mb-2">
+                                    <span class="text-slate-400">Tetrahedron Rotation Speed (自転)</span>
+                                    <span id="rotSpeedVal" class="text-oswPurple">1.0x</span>
+                                </div>
+                                <input type="range" id="rotSpeedSlider" min="0" max="3" step="0.1" value="1.0" class="w-full accent-oswPurple bg-slate-800 rounded-lg appearance-none h-2 cursor-pointer">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between text-xs font-mono mb-2">
+                                    <span class="text-slate-400">Empty Core Pulsation (脈動)</span>
+                                    <span id="pulseVal" class="text-oswPink">Active</span>
+                                </div>
+                                <input type="range" id="pulseSlider" min="0" max="2" step="0.1" value="1.0" class="w-full accent-oswPink bg-slate-800 rounded-lg appearance-none h-2 cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dimension Toggles -->
+                    <div class="mt-8 pt-6 border-t border-white/10 space-y-4">
+                        <span class="text-[11px] uppercase tracking-wider text-slate-500 font-mono block">Dimensional States</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="btn2D" class="px-3 py-2 rounded-lg text-xs bg-slate-900 border border-white/5 text-slate-400 hover:text-white transition-all hover:bg-slate-850">
+                                2D 平面ゲーム
+                            </button>
+                            <button id="btn3D" class="px-3 py-2 rounded-lg text-xs bg-gradient-to-r from-oswCyan/20 to-oswPurple/20 border border-oswCyan/30 text-oswCyan font-bold hover:scale-105 transition-all">
+                                3D 空っぽアジト
+                            </button>
+                        </div>
+                        <div class="p-3 bg-white/[0.02] border border-white/5 rounded-lg text-xs text-slate-400">
+                            <i class="fas fa-info-circle text-oswCyan mr-1"></i>
+                            <span id="stateExplanation">現在: <strong>Z軸モード</strong>。四面体の頂点は誰のものでもなく、中心は完全に中空（からっぽ）です。</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3D Canvas Box -->
+            <div class="lg:col-span-8 relative rounded-2xl border border-white/10 overflow-hidden bg-slate-950 neon-border-purple min-h-[450px] flex flex-col justify-between">
+                <!-- Header of Viewport -->
+                <div class="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/80 to-transparent z-10 flex justify-between items-center pointer-events-none">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-oswCyan animate-ping"></span>
+                        <span class="text-xs font-mono text-slate-300 tracking-widest uppercase">Tri-Tetra Virtual space</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 font-mono flex gap-4">
+                        <span>FPS: <span id="simFps">60</span></span>
+                        <span>PARTICLES: <span id="particleCount">150</span></span>
+                    </div>
+                </div>
+
+                <!-- Three.js Canvas Container -->
+                <div id="canvas3dContainer" class="w-full h-full min-h-[450px] relative cursor-grab active:cursor-grabbing">
+                    <!-- Loading placeholder / fallback -->
+                    <div id="canvasFallback" class="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-slate-950/90 z-20 transition-opacity duration-500 pointer-events-none">
+                        <i class="fas fa-circle-notch animate-spin text-3xl text-oswCyan mb-4"></i>
+                        <p class="text-sm font-semibold text-slate-300">Initializing WebGL Engine...</p>
+                        <p class="text-xs text-slate-500 mt-1">If loading stalls, ensure hardware acceleration is enabled.</p>
+                    </div>
+                </div>
+
+                <!-- Footer of Viewport / Interactive instruction overlay -->
+                <div class="absolute bottom-4 left-4 right-4 p-4 bg-slate-900/90 backdrop-blur-md rounded-xl border border-white/5 pointer-events-auto z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div class="text-xs">
+                        <span class="font-bold text-white block">🖐️ ドラッグ & 探索可能</span>
+                        <span class="text-slate-400 text-[11px]">マウスでドラッグ、またはスワイプして四面体の頂点と風の流れを多角的に観察できます。</span>
+                    </div>
+                    <button id="resetSimBtn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono rounded-lg transition-colors whitespace-nowrap self-stretch sm:self-auto text-center border border-white/5">
+                        <i class="fas fa-sync-alt mr-1"></i> Align Viewport
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Anthem & Audio Experience Lounge -->
+<section id="anthem" class="relative z-10 py-20 px-6 border-y border-white/5 bg-slate-950/30 backdrop-blur-sm">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-xs tracking-widest text-oswPink uppercase font-bold mb-3">Acoustic Genesis</h2>
+            <h3 class="text-3xl sm:text-4xl font-extrabold text-white">📜 OSW 憲章 / Anthem (Lofi Chill Trap)</h3>
+            <p class="text-slate-400 mt-4 max-w-2xl mx-auto text-sm">
+                「Chill Trap Beat with Lo-Fi Piano & 808 Bass」。<br class="hidden sm:inline">
+                下の音響アクティベーターを起動し、Webシンセサイザーの波に乗りながら歌詞を体感してください。
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Audio Controller and Visualizer -->
+            <div class="lg:col-span-5 space-y-6">
+                <div class="p-6 rounded-2xl bg-spaceBlack/90 border border-white/10 neon-border-purple relative overflow-hidden">
+                    <!-- Background ambient glow -->
+                    <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-oswPurple/5 rounded-full blur-2xl"></div>
+
+                    <div class="flex items-center justify-between mb-6">
+                        <span class="text-xs text-oswPink font-mono uppercase tracking-widest">Lo-Fi Synthesizer Matrix</span>
+                        <span id="playbackStatus" class="text-xs bg-slate-900 border border-white/10 px-2 py-0.5 rounded text-slate-400 font-mono">STANDBY</span>
+                    </div>
+
+                    <!-- Play button trigger -->
+                    <div class="flex flex-col items-center justify-center py-6">
+                        <button id="playAnthemBtn" class="w-24 h-24 rounded-full bg-gradient-to-tr from-oswPink via-oswPurple to-oswCyan flex items-center justify-center text-spaceBlack hover:scale-105 transition-all shadow-xl group cursor-pointer focus:outline-none">
+                            <i id="playIcon" class="fas fa-play text-3xl ml-1 transition-transform group-hover:scale-110"></i>
+                        </button>
+                        <p class="text-xs text-slate-400 mt-4 text-center leading-relaxed">
+                            <strong class="text-white block mb-1">↑ クリックで音響起動 (Sound Enable)</strong>
+                            ヘッドフォンでの視聴を強くお勧めします。<br>
+                            ブラウザのサウンドを有効にしてお待ちください。
+                        </p>
+                    </div>
+
+                    <!-- Live Synth Audio Visualizer Canvas -->
+                    <div class="mt-6">
+                        <div class="flex justify-between text-[11px] font-mono text-slate-500 mb-2">
+                            <span>808 Bass Sub-harmonics</span>
+                            <span>Lo-Fi Chord Phase</span>
+                        </div>
+                        <canvas id="audioVisualizer" class="w-full h-24 bg-slate-950 rounded-lg border border-white/5"></canvas>
+                        <div class="grid grid-cols-4 gap-1 mt-2">
+                            <span class="h-1 bg-oswCyan/40 rounded-full" id="bar1"></span>
+                            <span class="h-1 bg-oswPurple/40 rounded-full" id="bar2"></span>
+                            <span class="h-1 bg-oswPink/40 rounded-full" id="bar3"></span>
+                            <span class="h-1 bg-indigo-500/40 rounded-full" id="bar4"></span>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Instrument Knobs -->
+                    <div class="mt-6 pt-6 border-t border-white/10 grid grid-cols-2 gap-4">
+                        <div>
+                            <span class="text-[10px] font-mono text-slate-400 block mb-1">Piano Reverb</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-ghost text-xs text-oswCyan"></i>
+                                <div class="w-full h-1 bg-slate-800 rounded">
+                                    <div class="h-full bg-oswCyan rounded" style="width: 75%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-mono text-slate-400 block mb-1">808 Compression</span>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-wave-square text-xs text-oswPink"></i>
+                                <div class="w-full h-1 bg-slate-800 rounded">
+                                    <div class="h-full bg-oswPink rounded" style="width: 85%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Musical Metadata -->
+                <div class="p-6 rounded-2xl bg-slate-950 border border-white/5 space-y-4">
+                    <span class="text-xs uppercase tracking-wider text-slate-500 font-mono block">Track details</span>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Tempo (テンポ)</span>
+                        <span class="font-mono text-white">84 BPM (Chill Slow)</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Instruments (構成)</span>
+                        <span class="text-white text-right">Mellow Sine Key, 808 sub, Trap snap/clap, Hi-hats</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-400">Key Signature</span>
+                        <span class="font-mono text-oswCyan">A Minor (宇宙的哀愁)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lyrics Presentation -->
+            <div class="lg:col-span-7 p-8 rounded-2xl bg-slate-950/80 border border-white/10 backdrop-blur-md relative max-h-[640px] overflow-y-auto">
+                <div class="prose prose-invert max-w-none">
+                    <!-- Hook -->
+                    <div class="mb-8 pb-6 border-b border-white/10">
+                        <span class="text-xs font-mono font-bold text-oswCyan uppercase tracking-widest block mb-2">【Hook】</span>
+                        <p class="text-xl font-bold text-white leading-relaxed tracking-wide pl-4 border-l-4 border-oswCyan">
+                            俺たちナニエ？ チーム友達<br>
+                            俺たちナニエ オッスウィー<br>
+                            右も左も 敵も味方も<br>
+                            手のひら開けば チーム友達<br>
+                            俺たちナニエ？ チーム友達<br>
+                            俺たちナニエ オッスウィー<br>
+                            中心（まんなか）空っぽ 誰も座らない<br>
+                            だからいつでも オッスウィー！
+                        </p>
+                    </div>
+
+                    <!-- Verse -->
+                    <div class="mb-8 pb-6 border-b border-white/10">
+                        <span class="text-xs font-mono font-bold text-oswPurple uppercase tracking-widest block mb-2">【Verse】</span>
+                        <div class="text-slate-300 text-sm sm:text-base space-y-3 leading-relaxed pl-4">
+                            <p>あいつが引いた 一本の線分（ライン）</p>
+                            <p>進めば引くかの 奪い合いのサイン</p>
+                            <p>恐怖と名誉と ちっぽけな利益</p>
+                            <p>押し付け合うだけの 古い歴史</p>
+                            <p class="text-white font-semibold">でも俺らが見てるの 平面の「外」</p>
+                            <p class="text-white font-semibold">z方向に跳ぶ 新しいマインド</p>
+                            <p>四面体のトップ？ いやそこはパス</p>
+                            <p>誰も支配しない この空っぽのバース</p>
+                        </div>
+                    </div>
+
+                    <!-- Verse 2 -->
+                    <div class="mb-8 pb-6 border-b border-white/10">
+                        <span class="text-xs font-mono font-bold text-oswPink uppercase tracking-widest block mb-2">【Bridge】</span>
+                        <div class="text-slate-300 text-sm sm:text-base space-y-3 leading-relaxed pl-4">
+                            <p class="font-bold text-oswPink">目を開け 汝の手を見よ</p>
+                            <p>握りしめた拳（こぶし）じゃ 何も生めねえよ</p>
+                            <p>誇示も競争も ここにはない</p>
+                            <p>Open Source（オープンソース）に開く この世界</p>
+                            <p>俺が創って お前が繋ぐ</p>
+                            <p>お前が渡して 誰かが潤う</p>
+                            <p class="text-white font-semibold">全員がコントリビューター（頂点）</p>
+                            <p>誰もジャッジ（評価）しない 未来のチューナー</p>
+                        </div>
+                    </div>
+
+                    <!-- Outro -->
+                    <div>
+                        <span class="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest block mb-2">【Outro】</span>
+                        <p class="text-slate-400 text-sm italic pl-4 leading-relaxed">
+                            目を開く。手を見る。<br>
+                            そして、生まれるものに祝福を。<br>
+                            俺たちナニエ？<br>
+                            ……オッスウィー。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Wall of Hands (Witness UI) -->
+<section id="wall" class="relative z-10 py-20 px-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-xs tracking-widest text-oswCyan uppercase font-bold mb-3">Community Witness Board</h2>
+            <h3 class="text-3xl sm:text-4xl font-extrabold text-white">🖐️ Witness UI — Wall of Hands</h3>
+            <p class="text-slate-400 mt-4 max-w-2xl mx-auto text-sm">
+                あなたの手を開いてください。貢献（行動）の意味を持ち寄り、共に生きるアジトの壁画を創り上げましょう。
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Hand Registry Sandbox -->
+            <div class="lg:col-span-4 p-6 rounded-2xl bg-slate-950/80 border border-white/10 backdrop-blur-md relative">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-oswCyan/5 rounded-full blur-2xl"></div>
+
+                <h4 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fas fa-hand-pointer text-oswCyan"></i>
+                    <span>手のひらを置く</span>
+                </h4>
+                <p class="text-xs text-slate-400 mb-6">
+                    あなた独自のコントリビューション（意思）を選択し、証（あかし）をアジトの壁面に刻みます。
+                </p>
+
+                <!-- Form Controls -->
+                <form id="witnessForm" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-mono text-slate-400 mb-2 uppercase">あなたの名前 / 識別名</label>
+                        <input type="text" id="witnessName" value="Kimi - 君" placeholder="お名前、または匿名" required class="w-full bg-slate-900 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-oswCyan transition-colors">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono text-slate-400 mb-2 uppercase">意思（タイプ）の決定</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="contributionType" value="star" checked class="sr-only peer">
+                                <div class="p-3 bg-slate-900 border border-white/5 rounded-lg text-xs text-slate-400 peer-checked:border-oswCyan peer-checked:text-oswCyan peer-checked:bg-oswCyan/10 transition-all flex items-center gap-2">
+                                    <i class="fas fa-star"></i>
+                                    <span>⭐ Star</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="contributionType" value="fork" class="sr-only peer">
+                                <div class="p-3 bg-slate-900 border border-white/5 rounded-lg text-xs text-slate-400 peer-checked:border-oswPurple peer-checked:text-oswPurple peer-checked:bg-oswPurple/10 transition-all flex items-center gap-2">
+                                    <i class="fas fa-code-branch"></i>
+                                    <span>fork Fork</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="contributionType" value="issue" class="sr-only peer">
+                                <div class="p-3 bg-slate-900 border border-white/5 rounded-lg text-xs text-slate-400 peer-checked:border-oswPink peer-checked:text-oswPink peer-checked:bg-oswPink/10 transition-all flex items-center gap-2">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <span>✍️ Issue</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="contributionType" value="pr" class="sr-only peer">
+                                <div class="p-3 bg-slate-900 border border-white/5 rounded-lg text-xs text-slate-400 peer-checked:border-indigo-400 peer-checked:text-indigo-400 peer-checked:bg-indigo-400/10 transition-all flex items-center gap-2">
+                                    <i class="fas fa-tasks"></i>
+                                    <span>🔁 PR</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono text-slate-400 mb-2 uppercase">手のひらの色</label>
+                        <input type="color" id="handColor" value="#00f0ff" class="w-full bg-slate-900 border border-white/10 rounded-lg h-10 p-1 cursor-pointer">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-mono text-slate-400 mb-2 uppercase">アジトに残す一言（Witness Message）</label>
+                        <textarea id="witnessMsg" placeholder="風に乗せたい、小さく間違ったかもしれない、でも本当のあなたの声をここに。" rows="3" class="w-full bg-slate-900 border border-white/10 rounded-lg p-3 text-xs text-white focus:outline-none focus:border-oswCyan transition-colors resize-none"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 rounded-lg bg-gradient-to-r from-oswCyan via-oswPurple to-oswPink text-spaceBlack font-bold text-sm hover:scale-[1.02] transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-fingerprint"></i>
+                        <span>手のひらを押す (Witness!)</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Wall Grid Canvas -->
+            <div class="lg:col-span-8 p-6 rounded-2xl border border-white/10 bg-slate-950/60 backdrop-blur-md flex flex-col justify-between h-[640px] relative overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(rgba(189,0,255,0.03)_1px,transparent_1px)] bg-[size:16px_16px] pointer-events-none"></div>
+
+                <div class="relative z-10 flex justify-between items-center pb-4 border-b border-white/5">
+                    <span class="text-xs text-slate-400 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-oswCyan animate-ping"></span>
+                        <span>Witness Collective (アジトの集合意思壁画)</span>
+                    </span>
+                    <button id="clearWallBtn" class="text-[10px] text-slate-500 hover:text-oswPink transition-colors font-mono">
+                        <i class="fas fa-trash-alt mr-1"></i> Clear Local Hands
+                    </button>
+                </div>
+
+                <!-- Hands Grid Area (Overflow auto) -->
+                <div id="handsWall" class="relative flex-1 py-6 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-4 content-start pr-2">
+                    <!-- Cards will be injected dynamically -->
+                </div>
+
+                <!-- Minimal bottom summary -->
+                <div class="relative z-10 pt-4 border-t border-white/5 text-center sm:text-left flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-500">
+                    <span>共有知：一握の拳より、開いた手の数：<strong id="handCountText" class="text-oswCyan">0</strong> 手</span>
+                    <span class="italic">"We Use" は、共有知が知になるための構造そのもの</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="relative z-10 border-t border-white/10 bg-spaceBlack/90 py-16 px-6">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left">
+        <div>
+            <span class="text-xl font-bold bg-gradient-to-r from-oswCyan via-oswPurple to-oswPink bg-clip-text text-transparent tracking-widest block mb-2">OSW PROJECT</span>
+            <p class="text-xs text-slate-500 max-w-md leading-relaxed">
+                本当の敵はどこにもいません。敵を作っているのはいつも自分自身です。<br>
+                Zの風を起こす、分散型アジトでお待ちしております。
+            </p>
+        </div>
+        <div class="flex flex-col sm:flex-row items-center gap-8">
+            <div class="text-xs text-slate-400 space-y-1">
+                <span class="block"><strong>GitHub:</strong> <a href="https://github.com/kiki054-n/oss-wee" class="text-oswCyan hover:underline">kiki054-n/oss-wee</a></span>
+                <span class="block"><strong>License:</strong> MIT (Open for all)</span>
+            </div>
+            <div class="flex space-x-4">
+                <a href="#philosophy" class="w-10 h-10 rounded-full bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors border border-white/5">
+                    <i class="fas fa-book"></i>
+                </a>
+                <a href="#simulator" class="w-10 h-10 rounded-full bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors border border-white/5">
+                    <i class="fas fa-cube"></i>
+                </a>
+                <a href="#anthem" class="w-10 h-10 rounded-full bg-slate-900 hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition-colors border border-white/5">
+                    <i class="fas fa-music"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="max-w-7xl mx-auto text-center mt-12 pt-8 border-t border-white/5 text-[11px] text-slate-600">
+        &copy; 2026 OSW (Open Source We-use) Project. Made by friends for companion coexistence.
+    </div>
+</footer>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. STAR CANVAS BACKGROUND
+    const canvas = document.getElementById("starCanvas");
+    const ctx = canvas.getContext("2d");
+    let stars = [];
+    const maxStars = 100;
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    // Initialize Stars
+    for (let i = 0; i < maxStars; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 1.5,
+            speedX: (Math.random() - 0.5) * 0.15,
+            speedY: (Math.random() - 0.5) * 0.15,
+            opacity: Math.random()
+        });
+    }
+
+    function animateStars() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        
+        for (let star of stars) {
+            star.x += star.speedX;
+            star.y += star.speedY;
+            
+            // Loop boundaries
+            if (star.x < 0) star.x = canvas.width;
+            if (star.x > canvas.width) star.x = 0;
+            if (star.y < 0) star.y = canvas.height;
+            if (star.y > canvas.height) star.y = 0;
+
+            ctx.globalAlpha = star.opacity;
+            ctx.beginPath();
+            ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1.0;
+        requestAnimationFrame(animateStars);
+    }
+    animateStars();
+
+    const gazerPlayground = document.getElementById("gazerPlayground");
+    const glowPoint = document.getElementById("glowPoint");
+    const crosshairH = document.getElementById("crosshairH");
+    const crosshairV = document.getElementById("crosshairV");
+    const coordDisplay = document.getElementById("coordDisplay");
+    const matrixText = document.getElementById("matrixText");
+
+    gazerPlayground.addEventListener("mousemove", (e) => {
+        const rect = gazerPlayground.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Position glow & crosshair
+        glowPoint.style.left = `${x - 12}px`;
+        glowPoint.style.top = `${y - 12}px`;
+        glowPoint.style.opacity = 1;
+        
+        crosshairH.style.top = `${y}px`;
+        crosshairV.style.left = `${x}px`;
+
+        // Update Text
+        const percentX = Math.round((x / rect.width) * 100);
+        const percentY = Math.round((y / rect.height) * 100);
+        coordDisplay.textContent = `X: ${percentX.toString().padStart(3, '0')}%, Y: ${percentY.toString().padStart(3, '0')}%`;
+
+        // Dynamic status check depending on position
+        if (percentX > 40 && percentX < 60 && percentY > 40 && percentY < 60) {
+            matrixText.textContent = "🎯 Center Detected: 空っぽに同期!";
+            matrixText.className = "font-bold text-oswCyan tracking-wider animate-pulse";
+        } else {
+            matrixText.textContent = `星の角度を共有中: RA(${percentX}°) DEC(${percentY}°)`;
+            matrixText.className = "text-slate-400 text-xs";
+        }
+    });
+
+    gazerPlayground.addEventListener("mouseleave", () => {
+        glowPoint.style.opacity = 0;
+        matrixText.textContent = "光の観測を受け入れ中...";
+        matrixText.className = "text-slate-500 text-xs";
+    });
+
+    const container3d = document.getElementById("canvas3dContainer");
+    const fallbackEl = document.getElementById("canvasFallback");
+
+    let scene, camera, renderer, tetrahedron, wireframe, emptyCorePulse, windParticles;
+    let particlesSpeed = 0.02;
+    let customRotSpeed = 0.005;
+    let currentWindScalar = 1.0;
+    let currentPulseScalar = 1.0;
+    let isZAxis3D = true;
+
+    function init3D() {
+        try {
+            // Create Scene
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x05050e, 0.015);
+
+            // Create Camera
+            camera = new THREE.PerspectiveCamera(60, container3d.clientWidth / container3d.clientHeight, 0.1, 1000);
+            camera.position.z = 7;
+            camera.position.y = 2;
+
+            // Create Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container3d.clientWidth, container3d.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container3d.appendChild(renderer.domElement);
+
+            // Hide fallback loading UI
+            fallbackEl.style.opacity = 0;
+            setTimeout(() => fallbackEl.style.display = 'none', 500);
+
+            // Create Light System
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+            scene.add(ambientLight);
+
+            const pointLightCyan = new THREE.PointLight(0x00f0ff, 1.5, 30);
+            pointLightCyan.position.set(5, 5, 5);
+            scene.add(pointLightCyan);
+
+            const pointLightPurple = new THREE.PointLight(0xbd00ff, 1.5, 30);
+            pointLightPurple.position.set(-5, -5, 5);
+            scene.add(pointLightPurple);
+
+            // Create Tetrahedron (Empty inside structurally)
+            const geometry = new THREE.TetrahedronGeometry(2.5, 0); // radius=2.5, detail=0
+            
+            // Wireframe Material
+            const wireframeMat = new THREE.MeshBasicMaterial({
+                color: 0xbd00ff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.8
+            });
+            wireframe = new THREE.Mesh(geometry, wireframeMat);
+            scene.add(wireframe);
+
+            // Nodes at Vertices (representing points/heads of contributors)
+            const nodeGeo = new THREE.SphereGeometry(0.12, 16, 16);
+            const nodeMat = new THREE.MeshPhongMaterial({
+                color: 0x00f0ff,
+                emissive: 0x00f0ff,
+                shininess: 100
+            });
+
+            // Get vertices positions
+            const positionAttribute = geometry.getAttribute('position');
+            const vertices = [];
+            for (let i = 0; i < positionAttribute.count; i++) {
+                const vertex = new THREE.Vector3();
+                vertex.fromBufferAttribute(positionAttribute, i);
+                vertices.push(vertex);
+
+                // Add physical node at vertex
+                const nodeMesh = new THREE.Mesh(nodeGeo, nodeMat);
+                nodeMesh.position.copy(vertex);
+                wireframe.add(nodeMesh); // Add inside the rotating group
+            }
+
+            // Central Pulsating Empty Core (Visual Indicator of hollow center)
+            const coreGeo = new THREE.RingGeometry(0.4, 0.6, 32);
+            const coreMat = new THREE.MeshBasicMaterial({
+                color: 0xff007a,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.6
+            });
+            emptyCorePulse = new THREE.Mesh(coreGeo, coreMat);
+            scene.add(emptyCorePulse);
+
+            // Wind Particles ("Zの風") shooting up through empty center
+            const particleCount = 150;
+            const pGeometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const particleData = [];
+
+            for (let i = 0; i < particleCount; i++) {
+                // Initialize particles in a cylinder around the center rising up the Z axis (or Y as world Up)
+                const angle = Math.random() * Math.PI * 2;
+                const radius = Math.random() * 0.8;
+                const x = Math.cos(angle) * radius;
+                const y = (Math.random() - 0.5) * 8; // Height spread
+                const z = Math.sin(angle) * radius;
+
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = z;
+
+                particleData.push({
+                    speed: 0.02 + Math.random() * 0.05,
+                    originalRadius: radius,
+                    angle: angle
+                });
+            }
+
+            pGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            
+            // Glowing star texture mock
+            const pMaterial = new THREE.PointsMaterial({
+                color: 0x00f0ff,
+                size: 0.08,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            windParticles = new THREE.Points(pGeometry, pMaterial);
+            scene.add(windParticles);
+            windParticles.userData = { particleData: particleData };
+
+            // Handle Drag Interaction (Mouse Rotate)
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+
+            container3d.addEventListener('mousedown', () => { isDragging = true; });
+            container3d.addEventListener('mousemove', (e) => {
+                const deltaMove = {
+                    x: e.offsetX - previousMousePosition.x,
+                    y: e.offsetY - previousMousePosition.y
+                };
+
+                if (isDragging) {
+                    wireframe.rotation.y += deltaMove.x * 0.005;
+                    wireframe.rotation.x += deltaMove.y * 0.005;
+                    windParticles.rotation.y += deltaMove.x * 0.002;
+                }
+
+                previousMousePosition = {
+                    x: e.offsetX,
+                    y: e.offsetY
+                };
+            });
+            window.addEventListener('mouseup', () => { isDragging = false; });
+
+            // Touch support for mobile
+            container3d.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                if(e.touches.length > 0) {
+                    previousMousePosition = {
+                        x: e.touches[0].clientX,
+                        y: e.touches[0].clientY
+                    };
+                }
+            });
+            container3d.addEventListener('touchmove', (e) => {
+                if (isDragging && e.touches.length > 0) {
+                    const deltaMove = {
+                        x: e.touches[0].clientX - previousMousePosition.x,
+                        y: e.touches[0].clientY - previousMousePosition.y
+                    };
+                    wireframe.rotation.y += deltaMove.x * 0.008;
+                    wireframe.rotation.x += deltaMove.y * 0.008;
+
+                    previousMousePosition = {
+                        x: e.touches[0].clientX,
+                        y: e.touches[0].clientY
+                    };
+                }
+            });
+            container3d.addEventListener('touchend', () => { isDragging = false; });
+
+            // Start Main Loop
+            animate3D();
+
+        } catch (e) {
+            console.error("ThreeJS WebGL context creation failed.", e);
+            fallbackEl.innerHTML = `<i class="fas fa-exclamation-triangle text-3xl text-oswPink mb-4"></i><p class="text-sm">Web GL Context is blocked or unsupported.</p>`;
+        }
+    }
+
+    // Animation Loop
+    let lastTime = 0;
+    let pulseTime = 0;
+    function animate3D(timestamp) {
+        requestAnimationFrame(animate3D);
+
+        // Calculate FPS roughly
+        if (timestamp) {
+            const dt = timestamp - lastTime;
+            lastTime = timestamp;
+            document.getElementById("simFps").textContent = Math.round(1000 / dt);
+        }
+
+        // Rotate Tetrahedron
+        if (wireframe) {
+            wireframe.rotation.y += customRotSpeed;
+            wireframe.rotation.x += customRotSpeed * 0.3;
+        }
+
+        // Pulse Center Circle (representing the void space pulse)
+        if (emptyCorePulse) {
+            pulseTime += 0.05 * currentPulseScalar;
+            const pulseSize = 1 + Math.sin(pulseTime) * 0.2;
+            emptyCorePulse.scale.set(pulseSize, pulseSize, pulseSize);
+            emptyCorePulse.rotation.z += 0.01;
+        }
+
+        // Animating Wind Particles rising in Z directions
+        if (windParticles) {
+            const positions = windParticles.geometry.attributes.position.array;
+            const pData = windParticles.userData.particleData;
+
+            for (let i = 0; i < pData.length; i++) {
+                // If ZAxis3D, move upward (Y world). Else if simulated flat, flatten movement
+                if (isZAxis3D) {
+                    positions[i * 3 + 1] += pData[i].speed * currentWindScalar; // rise in Y
+                    // cycle bounds
+                    if (positions[i * 3 + 1] > 4) {
+                        positions[i * 3 + 1] = -4;
+                        positions[i * 3] = (Math.random() - 0.5) * 0.5;
+                        positions[i * 3 + 2] = (Math.random() - 0.5) * 0.5;
+                    }
+                } else {
+                    // flattened on plane
+                    positions[i * 3 + 1] = 0; // Lock Y
+                    positions[i * 3] += (Math.random() - 0.5) * 0.01; // drift flat
+                }
+            }
+            windParticles.geometry.attributes.position.needsUpdate = true;
+        }
+
+        if (renderer && scene && camera) {
+            renderer.render(scene, camera);
+        }
+    }
+
+    // Handle Window Resize
+    window.addEventListener('resize', () => {
+        if (camera && renderer) {
+            camera.aspect = container3d.clientWidth / container3d.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container3d.clientWidth, container3d.clientHeight);
+        }
+    });
+
+    init3D();
+
+    const windSpeedSlider = document.getElementById("windSpeedSlider");
+    const windSpeedVal = document.getElementById("windSpeedVal");
+    const rotSpeedSlider = document.getElementById("rotSpeedSlider");
+    const rotSpeedVal = document.getElementById("rotSpeedVal");
+    const pulseSlider = document.getElementById("pulseSlider");
+    const pulseVal = document.getElementById("pulseVal");
+    const stateExplanation = document.getElementById("stateExplanation");
+
+    windSpeedSlider.addEventListener("input", (e) => {
+        currentWindScalar = parseFloat(e.target.value);
+        windSpeedVal.textContent = `${currentWindScalar.toFixed(1)}x`;
+    });
+
+    rotSpeedSlider.addEventListener("input", (e) => {
+        const val = parseFloat(e.target.value);
+        customRotSpeed = 0.005 * val;
+        rotSpeedVal.textContent = `${val.toFixed(1)}x`;
+    });
+
+    pulseSlider.addEventListener("input", (e) => {
+        currentPulseScalar = parseFloat(e.target.value);
+        if (currentPulseScalar === 0) {
+            pulseVal.textContent = "Stopped";
+            pulseVal.className = "text-slate-500";
+        } else {
+            pulseVal.textContent = "Active";
+            pulseVal.className = "text-oswPink";
+        }
+    });
+
+    // Reset View Button
+    document.getElementById("resetSimBtn").addEventListener("click", () => {
+        if (wireframe && camera) {
+            wireframe.rotation.set(0, 0, 0);
+            camera.position.set(0, 2, 7);
+        }
+    });
+
+    // Dimension Toggles (Pyramid flat game vs Multi-dim space)
+    document.getElementById("btn2D").addEventListener("click", () => {
+        isZAxis3D = false;
+        document.getElementById("btn2D").className = "px-3 py-2 rounded-lg text-xs bg-gradient-to-r from-oswPink/20 to-red-500/20 border border-oswPink/30 text-oswPink font-bold scale-105 transition-all";
+        document.getElementById("btn3D").className = "px-3 py-2 rounded-lg text-xs bg-slate-900 border border-white/5 text-slate-400 hover:text-white transition-all hover:bg-slate-850";
+        stateExplanation.innerHTML = `⚠️ 2Dモード: Z軸が消え、人々は平面に縛られました。風は止まり、頂点の奪い合いが発生しています。`;
+        // Flatten wireframe visual scale
+        if (wireframe) wireframe.scale.set(1.5, 0.01, 1.5);
+    });
+
+    document.getElementById("btn3D").addEventListener("click", () => {
+        isZAxis3D = true;
+        document.getElementById("btn3D").className = "px-3 py-2 rounded-lg text-xs bg-gradient-to-r from-oswCyan/20 to-oswPurple/20 border border-oswCyan/30 text-oswCyan font-bold scale-105 transition-all";
+        document.getElementById("btn2D").className = "px-3 py-2 rounded-lg text-xs bg-slate-900 border border-white/5 text-slate-400 hover:text-white transition-all hover:bg-slate-850";
+        stateExplanation.innerHTML = `🪐 <strong>Z軸モード</strong>: 四面体の頂点は誰のものでもなく、中心は完全に中空（からっぽ）です。`;
+        // Restore wireframe visual scale
+        if (wireframe) wireframe.scale.set(1, 1, 1);
+    });
+
+    const playBtn = document.getElementById("playAnthemBtn");
+    const playIcon = document.getElementById("playIcon");
+    const statusLabel = document.getElementById("playbackStatus");
+
+    // Tone.js Audio Setup
+    let isSynthRunning = false;
+    let synth, subBass, snareDrum, metalHats, noiseSynth;
+    let loopChords, loopBeats, loopBass;
+    
+    // Canvas visualizer setup
+    const audioCanvas = document.getElementById("audioVisualizer");
+    const actx = audioCanvas.getContext("2d");
+    let analyser;
+
+    function initSynth() {
+        // Initialize Instruments
+        // 1. Synth Piano (Soft Sine chord keys)
+        synth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.1, decay: 0.4, sustain: 0.7, release: 1.5 }
+        });
+        
+        // Add Filter for Lofi moodiness
+        const filter = new Tone.Filter({
+            frequency: 600,
+            type: "lowpass",
+            Q: 1
+        });
+        
+        // Add reverb for deep hollow feel
+        const reverb = new Tone.Reverb({
+            roomSize: 0.8,
+            wet: 0.45
+        });
+
+        synth.chain(filter, reverb, Tone.Destination);
+
+        // 2. 808 Sub Bass (gently sliding sine)
+        subBass = new Tone.MonoSynth({
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.1, decay: 0.3, sustain: 0.8, release: 0.8 }
+        }).toDestination();
+
+        // 3. Simple Noise & Metallic generator for hihats / snare snaps
+        snareDrum = new Tone.NoiseSynth({
+            noise: { type: 'white' },
+            envelope: { attack: 0.005, decay: 0.1, sustain: 0 }
+        });
+        
+        const snapFilter = new Tone.Filter(1200, "bandpass");
+        snareDrum.chain(snapFilter, Tone.Destination);
+
+        metalHats = new Tone.MetalSynth({
+            frequency: 250,
+            envelope: { attack: 0.001, decay: 0.04, release: 0.04 },
+            harmonicity: 5.1,
+            resonance: 4000
+        }).toDestination();
+
+        // 4. Analyser Node for visualizer
+        analyser = new Tone.Analyser("fft", 64);
+        Tone.Destination.connect(analyser);
+
+        // Sequence Chords (Am - Fmaj7 - Cmaj7 - G6) Lofi progression
+        const chordSeq = [
+            ["A3", "C4", "E4", "G4"], // Am7
+            ["F3", "A3", "C4", "E4"], // Fmaj7
+            ["C3", "E3", "G3", "B3"], // Cmaj7
+            ["G3", "B3", "D4", "F4"]  // G6
+        ];
+
+        let chordIndex = 0;
+        loopChords = new Tone.Loop((time) => {
+            const chords = chordSeq[chordIndex];
+            synth.triggerAttackRelease(chords, "2n", time);
+            chordIndex = (chordIndex + 1) % chordSeq.length;
+        }, "1m"); // every measure
+
+        // Bass Sequence (Syncs nicely with beats)
+        const bassNotes = ["A1", "F1", "C2", "G1"];
+        let bassIndex = 0;
+        loopBass = new Tone.Loop((time) => {
+            subBass.triggerAttackRelease(bassNotes[bassIndex], "2n", time);
+            bassIndex = (bassIndex + 1) % bassNotes.length;
+        }, "1m");
+
+        // Drum Sequence (Hats on offbeat, Snares on 2 & 4, Kicks on 1)
+        let step = 0;
+        loopBeats = new Tone.Loop((time) => {
+            // Hihats
+            if (step % 2 === 1) {
+                metalHats.triggerAttackRelease(0.1, time, 0.4);
+            }
+            // Snare / Snap on step 4 and 12 (standard beats 2 and 4)
+            if (step === 4 || step === 12) {
+                snareDrum.triggerAttack(time);
+            }
+            step = (step + 1) % 16;
+        }, "16n");
+
+        Tone.Transport.bpm.value = 84;
+    }
+
+    // Toggle Audio System
+    playBtn.addEventListener("click", async () => {
+        // Start Tone Audio Context on user action
+        if (Tone.context.state !== 'running') {
+            await Tone.start();
+        }
+
+        if (!isSynthRunning) {
+            // Build synthesizer if not yet made
+            if (!synth) {
+                initSynth();
+            }
+
+            // Start Audio Sequencer
+            Tone.Transport.start();
+            loopChords.start(0);
+            loopBass.start(0);
+            loopBeats.start(0);
+
+            isSynthRunning = true;
+            playIcon.className = "fas fa-stop text-3xl";
+            statusLabel.textContent = "PLAYING LOFI";
+            statusLabel.className = "text-xs bg-oswPink/20 border border-oswPink text-oswPink px-2 py-0.5 rounded font-mono";
+            
+            // Start Visualizer Loop
+            drawAudioVisualizer();
+        } else {
+            // Stop Audio
+            Tone.Transport.stop();
+            if (loopChords) loopChords.stop();
+            if (loopBass) loopBass.stop();
+            if (loopBeats) loopBeats.stop();
+
+            isSynthRunning = false;
+            playIcon.className = "fas fa-play text-3xl ml-1";
+            statusLabel.textContent = "STANDBY";
+            statusLabel.className = "text-xs bg-slate-900 border border-white/10 text-slate-400 px-2 py-0.5 rounded font-mono";
+        }
+    });
+
+    // Draw Visualizer
+    function drawAudioVisualizer() {
+        if (!isSynthRunning) return;
+        requestAnimationFrame(drawAudioVisualizer);
+
+        const width = audioCanvas.width = audioCanvas.clientWidth;
+        const height = audioCanvas.height = audioCanvas.clientHeight;
+        
+        actx.clearRect(0, 0, width, height);
+
+        const values = analyser.getValue();
+        const bufferLength = values.length;
+        const barWidth = width / bufferLength;
+
+        // Draw synthetic visual bars
+        for (let i = 0; i < bufferLength; i++) {
+            // Convert dB value to visual height
+            const val = values[i];
+            const percent = (val + 140) / 140; // DB range normalization
+            const barHeight = Math.max(2, percent * height * 1.5);
+
+            // Colorful gradients
+            const r = Math.floor(Math.sin(i * 0.1) * 128 + 127);
+            const g = Math.floor(Math.cos(i * 0.15) * 128 + 127);
+            const b = 255;
+
+            actx.fillStyle = `rgb(${r},${g},${b})`;
+            actx.fillRect(i * barWidth, height - barHeight, barWidth - 1, barHeight);
+        }
+
+        // Simulating floating neon bar triggers
+        const triggerFactor = Math.abs(values[0]) / 100;
+        document.getElementById("bar1").style.opacity = Math.max(0.2, triggerFactor * 2);
+        document.getElementById("bar2").style.opacity = Math.max(0.2, triggerFactor * 1.8);
+        document.getElementById("bar3").style.opacity = Math.max(0.2, triggerFactor * 1.5);
+        document.getElementById("bar4").style.opacity = Math.max(0.2, triggerFactor * 1.2);
+    }
+
+    const witnessForm = document.getElementById("witnessForm");
+    const handsWall = document.getElementById("handsWall");
+    const handCountText = document.getElementById("handCountText");
+    const clearWallBtn = document.getElementById("clearWallBtn");
+
+    // Local Mock Storage state for hands
+    let handsState = [
+        { name: "川上真潔 (kiki054-n)", type: "pr", color: "#00f0ff", message: "Witness UIをIssue/PRコメントとして実装。平面に空いたZの風穴を世界に吹き込む。", time: "3週間前" },
+        { name: "OSW_Bot", type: "star", color: "#bd00ff", message: "星を見るように共有知を使う。ピラミッドを突き抜けよう。", time: "たった今" },
+        { name: "Companion_A", type: "fork", color: "#ff007a", message: "手の中にコードを持ち帰ります。これからはひとりじゃない。", time: "1時間前" }
+    ];
+
+    function renderHands() {
+        handsWall.innerHTML = "";
+        handCountText.textContent = handsState.length;
+
+        handsState.forEach((hand, idx) => {
+            const card = document.createElement("div");
+            card.className = "p-4 rounded-xl bg-slate-900/90 border border-white/5 hover:border-white/20 transition-all flex items-start gap-4 shadow-lg scale-95 animate-fade-in";
+            
+            // Get action icons depending on contribution type
+            let iconClass = "fa-star text-oswCyan";
+            let actionLabel = "Star";
+            if (hand.type === "fork") { iconClass = "fa-code-branch text-oswPurple"; actionLabel = "Forked"; }
+            if (hand.type === "issue") { iconClass = "fa-exclamation-circle text-oswPink"; actionLabel = "Opened Issue"; }
+            if (hand.type === "pr") { iconClass = "fa-tasks text-indigo-400"; actionLabel = "Merged PR"; }
+
+            card.innerHTML = `
+                <!-- Hand SVG Asset based on user color selection -->
+                <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-lg bg-white/5" style="border: 1.5px solid ${hand.color}">
+                    <svg class="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="${hand.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v5" />
+                        <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6" />
+                        <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6.5" />
+                        <path d="M6 14v-1.5a1.5 1.5 0 0 0-3 0V16a5 5 0 0 0 5 5h4a8 8 0 0 0 8-8v-2a1.5 1.5 0 0 0-3 0" />
+                    </svg>
+                </div>
+                <!-- Content details -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-center gap-2 mb-1">
+                        <span class="font-bold text-xs text-white truncate">${hand.name}</span>
+                        <span class="text-[9px] font-mono bg-white/5 px-1.5 py-0.5 rounded text-slate-400 whitespace-nowrap">
+                            <i class="fas ${iconClass} mr-1"></i>${actionLabel}
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed break-words">${hand.message}</p>
+                    <span class="text-[9px] text-slate-500 font-mono block mt-1">${hand.time}</span>
+                </div>
+            `;
+            handsWall.appendChild(card);
+        });
+    }
+
+    // Submit Action to place hands
+    witnessForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const nameInput = document.getElementById("witnessName");
+        const typeInput = document.querySelector('input[name="contributionType"]:checked');
+        const colorInput = document.getElementById("handColor");
+        const msgInput = document.getElementById("witnessMsg");
+
+        const newHand = {
+            name: nameInput.value || "Anonymous Companion",
+            type: typeInput.value,
+            color: colorInput.value,
+            message: msgInput.value || "手を開き、ここにいます。",
+            time: "ただ今"
+        };
+
+        // Add to state
+        handsState.unshift(newHand);
+        renderHands();
+
+        // Reset text fields
+        msgInput.value = "";
+        
+        // Add particle effects in Three.js core dynamically
+        if (wireframe && isZAxis3D) {
+            // Trigger temporary visual pulse glow
+            currentPulseScalar = 4.0;
+            setTimeout(() => { currentPulseScalar = 1.0; }, 2000);
+        }
+    });
+
+    // Clear Local Storage items
+    clearWallBtn.addEventListener("click", () => {
+        handsState = [
+            { name: "川上真潔 (kiki054-n)", type: "pr", color: "#00f0ff", message: "Witness UIをIssue/PRコメントとして実装。平面に空いたZの風穴を世界に吹き込む。", time: "3週間前" }
+        ];
+        renderHands();
+    });
+
+    // Initial render
+    renderHands();
+});
+</script>
+</body>
+</html>
