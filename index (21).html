@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>F_anime — oss-wee</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Serif+JP:wght@300;400;600&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+  :root {
+    --bg: #0f0a0a;
+    --surface: #1a1412;
+    --surface-light: #251e1a;
+    --ink: #f5f0e8;
+    --ink-dim: #b8b0a4;
+    --ink-faint: #7a7268;
+    --accent-gold: #d4af37;
+    --accent-gold-dim: #a08020;
+    --accent-wine: #722f37;
+    --accent-terroir: #3d5a3a;
+    --line: color-mix(in oklab, var(--ink) 10%, transparent);
+    --line-strong: color-mix(in oklab, var(--accent-gold) 25%, transparent);
+    --shadow: 0 4px 24px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.3);
+    --step--2: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+    --step--1: clamp(0.875rem, 0.8rem + 0.35vw, 1rem);
+    --step-0: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+    --step-1: clamp(1.25rem, 1.1rem + 0.7vw, 1.5rem);
+    --step-2: clamp(1.5rem, 1.2rem + 1.5vw, 2.25rem);
+    --step-3: clamp(2rem, 1.5rem + 2.5vw, 3.5rem);
+    --space: clamp(1rem, 0.6rem + 2vw, 2.5rem);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.8;
+    font-size: var(--step-0);
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  header {
+    min-height: 40vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: calc(var(--space) * 2) var(--space);
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(114,47,55,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 80%, rgba(61,90,58,0.08) 0%, transparent 50%),
+      var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+
+  header::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  .repo-label {
+    font-family: "Cinzel", serif;
+    font-size: var(--step--2);
+    letter-spacing: 0.35em;
+    color: var(--accent-gold-dim);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-family: "Cinzel", "Noto Serif JP", serif;
+    font-size: var(--step-3);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0.05em;
+    color: var(--ink);
+  }
+
+  h1 span {
+    display: block;
+    font-family: "Noto Serif JP", serif;
+    font-size: var(--step-1);
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    color: var(--accent-gold);
+    margin-top: 0.5rem;
+  }
+
+  .repo-desc {
+    font-family: "Noto Serif JP", serif;
+    font-size: var(--step-0);
+    color: var(--ink-dim);
+    margin-top: 1.5rem;
+    max-width: 50ch;
+    line-height: 2;
+  }
+
+  /* Main */
+  main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: calc(var(--space) * 2) var(--space);
+  }
+
+  .section-title {
+    font-family: "Cinzel", serif;
+    font-size: var(--step-1);
+    color: var(--accent-gold);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--line-strong);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .section-title::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: var(--accent-gold);
+    border-radius: 50%;
+    opacity: 0.7;
+  }
+
+  /* Cards */
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    margin-bottom: calc(var(--space) * 2.5);
+  }
+
+  @media (min-width: 640px) {
+    .card-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    transition: border-color 0.3s ease, transform 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .card:hover {
+    border-color: var(--line-strong);
+    transform: translateY(-3px);
+  }
+
+  .card-title {
+    font-family: "Noto Serif JP", serif;
+    font-size: var(--step-1);
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.03em;
+  }
+
+  .card-meta {
+    font-family: "Cinzel", serif;
+    font-size: var(--step--2);
+    color: var(--accent-gold-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .card-desc {
+    font-size: var(--step--1);
+    color: var(--ink-dim);
+    line-height: 1.7;
+  }
+
+  .card-arrow {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    font-family: "Cinzel", serif;
+    font-size: var(--step--2);
+    color: var(--accent-gold);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card-arrow::after {
+    content: "→";
+    transition: transform 0.3s ease;
+  }
+
+  .card:hover .card-arrow::after {
+    transform: translateX(4px);
+  }
+
+  /* Image gallery */
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: calc(var(--space) * 2.5);
+  }
+
+  @media (min-width: 768px) {
+    .image-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .image-card {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    background: var(--surface);
+    transition: transform 0.3s ease;
+  }
+
+  .image-card:hover {
+    transform: translateY(-3px);
+  }
+
+  .image-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+
+  .image-card:hover img {
+    transform: scale(1.05);
+  }
+
+  .image-card p {
+    padding: 0.75rem 1rem;
+    font-size: var(--step--2);
+    color: var(--ink-faint);
+    letter-spacing: 0.05em;
+    text-align: center;
+  }
+
+  /* File list */
+  .file-list {
+    list-style: none;
+    margin-bottom: calc(var(--space) * 2.5);
+  }
+
+  .file-list li {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .file-list a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0.5rem;
+    color: var(--ink-dim);
+    text-decoration: none;
+    font-size: var(--step--1);
+    transition: color 0.2s ease, background 0.2s ease;
+    border-radius: 6px;
+  }
+
+  .file-list a:hover {
+    color: var(--ink);
+    background: var(--surface-light);
+  }
+
+  .file-list .fname {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .file-list .ficon {
+    font-family: "Cinzel", serif;
+    font-size: 10px;
+    color: var(--accent-gold-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    min-width: 40px;
+  }
+
+  .file-list .fext {
+    font-family: "Cinzel", serif;
+    font-size: 10px;
+    color: var(--ink-faint);
+    letter-spacing: 0.1em;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: calc(var(--space) * 2) var(--space);
+    border-top: 1px solid var(--line);
+    color: var(--ink-faint);
+    font-size: var(--step--2);
+    letter-spacing: 0.1em;
+  }
+
+  footer a {
+    color: var(--accent-gold-dim);
+    text-decoration: none;
+  }
+
+  footer a:hover {
+    color: var(--accent-gold);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card, .image-card, .image-card img { transition: none; }
+  }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    header { min-height: auto; }
+    .card { break-inside: avoid; }
+  }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="repo-label">oss-wee / F_anime</div>
+  <h1>
+    F_anime
+    <span>アニメーション・ストーリーボード集</span>
+  </h1>
+  <p class="repo-desc">
+    TamaTerroir: Paris パイロット版のナレーション台本、ストーリーボード、関連資料をまとめたディレクトリ。
+  </p>
+</header>
+
+<main>
+
+  <!-- HTML Pages -->
+  <h2 class="section-title">HTML Pages</h2>
+  <div class="card-grid">
+    <a class="card" href="Tamaterroir-Paris-Storyboard.html">
+      <div class="card-meta">Storyboard</div>
+      <div class="card-title">Tamaterroir: Paris — ストーリーボード</div>
+      <div class="card-desc">
+        3分予告編の全8シーンを画像付きで構成したストーリーボード。フランス語セリフ、日本語ナレーション、演出指示を収録。
+      </div>
+      <div class="card-arrow">Open</div>
+    </a>
+    <a class="card" href="Tamaterroir-Narration-Player.html">
+      <div class="card-meta">Player</div>
+      <div class="card-title">Tamaterroir: Paris — ナレーション・プレイヤー</div>
+      <div class="card-desc">
+        ナレーション台本を再生形式で閲覧できるプレイヤー。タイムコード付きでシーンを順に追体験。
+      </div>
+      <div class="card-arrow">Open</div>
+    </a>
+  </div>
+
+  <!-- Scene Images -->
+  <h2 class="section-title">Scene Images</h2>
+  <div class="image-grid">
+    <div class="image-card">
+      <img src="https://raw.githubusercontent.com/kiki054-n/oss-wee/main/F_anime/image_20261020_104511.jpg" alt="SCENE 1">
+      <p>SCENE 1 — 教室と青い欠片</p>
+    </div>
+    <div class="image-card">
+      <img src="https://raw.githubusercontent.com/kiki054-n/oss-wee/main/F_anime/image_20261020_104924.jpg" alt="SCENE 2">
+      <p>SCENE 2 — リモージュの炎</p>
+    </div>
+    <div class="image-card">
+      <img src="https://raw.githubusercontent.com/kiki054-n/oss-wee/main/F_anime/image_20261020_105441.jpg" alt="SCENE 3&4">
+      <p>SCENE 3&amp;4 — 玉の中の目</p>
+    </div>
+    <div class="image-card">
+      <img src="https://raw.githubusercontent.com/kiki054-n/oss-wee/main/F_anime/image_20261020_105456.jpg" alt="SCENE 5&6">
+      <p>SCENE 5&amp;6 — 金継ぎとテロワール</p>
+    </div>
+    <div class="image-card">
+      <img src="https://raw.githubusercontent.com/kiki054-n/oss-wee/main/F_anime/image_20261020_105456_1.jpg" alt="SCENE 7&8">
+      <p>SCENE 7&amp;8 — 合体と反転</p>
+    </div>
+  </div>
+
+  <!-- Documents -->
+  <h2 class="section-title">Documents</h2>
+  <ul class="file-list">
+    <li>
+      <a href="Tamaterroir-Paris-Narration.md">
+        <span class="fname">
+          <span class="ficon">MD</span>
+          Tamaterroir-Paris-Narration.md
+        </span>
+        <span class="fext">Narration</span>
+      </a>
+    </li>
+    <li>
+      <a href="World-Compass-2026.md">
+        <span class="fname">
+          <span class="ficon">MD</span>
+          World-Compass-2026.md
+        </span>
+        <span class="fext">Compass</span>
+      </a>
+    </li>
+    <li>
+      <a href="World-Compass-2026-En.md">
+        <span class="fname">
+          <span class="ficon">MD</span>
+          World-Compass-2026-En.md
+        </span>
+        <span class="fext">English</span>
+      </a>
+    </li>
+    <li>
+      <a href="artifact-e9d102e5.pdf">
+        <span class="fname">
+          <span class="ficon">PDF</span>
+          artifact-e9d102e5.pdf
+        </span>
+        <span class="fext">Artifact</span>
+      </a>
+    </li>
+  </ul>
+
+</main>
+
+<footer>
+  <p>
+    <a href="https://github.com/kiki054-n/oss-wee">oss-wee</a> / F_anime —
+    Open Source, We U
+  </p>
+</footer>
+
+</body>
+</html>
